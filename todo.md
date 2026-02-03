@@ -45,3 +45,13 @@
 - [x] Adicionar seção Linha Trufada Gourmet com todos os sabores
 - [x] Detalhar sabores da caixa de mini ovos
 - [ ] (Futuro) Funcionalidade de customização de ovo - aguardando aprovação da jornada
+
+## Funcionalidade de Personalização de Ovos
+
+- [x] Definir jornada de usuário para personalização
+- [x] Criar fluxo de escolhas (peso, casca, recheio)
+- [x] Implementar interface de personalização
+- [x] Integrar com carrinho e WhatsApp
+
+- [x] Corrigir proposta de jornada: remover preços adicionais inventados
+- [x] Incluir todos os sabores da Linha Trufada Gourmet (Franuii, Maracujá com Nutella, Charge, etc.)

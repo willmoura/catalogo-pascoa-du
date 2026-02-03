@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 
 interface HeroProps {
   onScrollToProducts: () => void;
+  onCustomize?: () => void;
 }
 
-export default function Hero({ onScrollToProducts }: HeroProps) {
+export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
   return (
     <section className="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--cream)] via-background to-secondary/30">
       {/* Decorative Elements */}
@@ -96,6 +97,7 @@ export default function Hero({ onScrollToProducts }: HeroProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button
               size="lg"
@@ -105,6 +107,17 @@ export default function Hero({ onScrollToProducts }: HeroProps) {
               Ver Catálogo
               <ChevronDown className="w-4 h-4" />
             </Button>
+            {onCustomize && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white"
+                onClick={onCustomize}
+              >
+                <Sparkles className="w-4 h-4" />
+                Monte seu Ovo
+              </Button>
+            )}
           </motion.div>
         </motion.div>
 

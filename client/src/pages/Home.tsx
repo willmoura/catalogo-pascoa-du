@@ -10,12 +10,14 @@ import ProductModal from "@/components/ProductModal";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import LinhaGourmetSection from "@/components/LinhaGourmetSection";
+import CustomizeEgg from "@/components/CustomizeEgg";
 
 export default function Home() {
   const productsRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProductSlug, setSelectedProductSlug] = useState<string | null>(null);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
 
   // Fetch catalog data
   const { data: catalog, isLoading } = trpc.catalog.full.useQuery();
@@ -85,7 +87,7 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} />
       
-      <Hero onScrollToProducts={scrollToProducts} />
+      <Hero onScrollToProducts={scrollToProducts} onCustomize={() => setIsCustomizeOpen(true)} />
 
       {/* Categories */}
       <div ref={productsRef}>
@@ -93,6 +95,7 @@ export default function Home() {
           categories={catalog?.categories || []}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
+          onCustomize={() => setIsCustomizeOpen(true)}
         />
       </div>
 
@@ -174,6 +177,9 @@ export default function Home() {
 
       {/* WhatsApp Button */}
       <WhatsAppButton />
+
+      {/* Customize Egg Modal */}
+      <CustomizeEgg isOpen={isCustomizeOpen} onClose={() => setIsCustomizeOpen(false)} />
     </div>
   );
 }
