@@ -243,8 +243,8 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                   </div>
                 </div>
 
-                {/* Flavor Selection */}
-                {product.flavors.length > 0 && (
+                {/* Flavor Selection - for products that require flavor choice */}
+                {product.flavors.length > 0 && !product.slug.includes('mini-ovos') && (
                   <div>
                     <h3 className="font-semibold text-foreground mb-3">
                       Sabor do Recheio
@@ -270,6 +270,47 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                           )}
                         </motion.button>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sabores Inclusos - for Mini Ovos kits */}
+                {product.flavors.length > 0 && product.slug.includes('mini-ovos') && (
+                  <div>
+                    <h3 className="font-semibold text-[var(--gold)] mb-3 uppercase text-sm tracking-wide">
+                      Sabores Inclusos
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {product.flavors.map((flavorItem) => (
+                        <div
+                          key={flavorItem.flavor.id}
+                          className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg border border-border"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-[var(--gold)]" />
+                          <span className="text-sm text-foreground">{flavorItem.flavor.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Ideal para section */}
+                    <div className="mt-4 p-4 bg-[var(--chocolate)] rounded-xl">
+                      <h4 className="font-semibold text-[var(--cream)] mb-2 uppercase text-sm tracking-wide">
+                        Ideal Para
+                      </h4>
+                      <ul className="space-y-1 text-[var(--cream)]/90 text-sm">
+                        <li className="flex items-center gap-2">
+                          <span>✓</span> Presentes especiais
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span>✓</span> Degustar vários sabores
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span>✓</span> Festas e eventos
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span>✓</span> Lembrancinhas premium
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 )}

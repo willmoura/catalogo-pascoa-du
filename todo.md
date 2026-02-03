@@ -40,3 +40,8 @@
 - [x] Corrigir formatação da mensagem do WhatsApp com emojis
 
 - [x] Corrigir renderização dos emojis na mensagem do WhatsApp
+
+- [x] Adicionar talentino conforme site original
+- [x] Adicionar seção Linha Trufada Gourmet com todos os sabores
+- [x] Detalhar sabores da caixa de mini ovos
+- [ ] (Futuro) Funcionalidade de customização de ovo - aguardando aprovação da jornada

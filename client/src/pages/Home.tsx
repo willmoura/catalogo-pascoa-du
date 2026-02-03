@@ -9,6 +9,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductModal from "@/components/ProductModal";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import LinhaGourmetSection from "@/components/LinhaGourmetSection";
 
 export default function Home() {
   const productsRef = useRef<HTMLDivElement>(null);
@@ -94,6 +95,9 @@ export default function Home() {
           onSelectCategory={setSelectedCategory}
         />
       </div>
+
+      {/* Linha Trufada Gourmet Section */}
+      <LinhaGourmetSection onSelectProduct={setSelectedProductSlug} />
 
       {/* Products Section */}
       <section className="py-8 md:py-12">
