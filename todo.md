@@ -36,3 +36,5 @@
 - [x] Remover menções de "Chocolates Artesanais" do site
 
 - [x] Atualizar nome do site para "Ovos de Páscoa Du"
+
+- [x] Corrigir formatação da mensagem do WhatsApp com emojis

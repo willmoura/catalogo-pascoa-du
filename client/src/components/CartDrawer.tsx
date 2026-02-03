@@ -22,19 +22,19 @@ export default function CartDrawer() {
   const createOrderMutation = trpc.orders.create.useMutation();
 
   const formatWhatsAppMessage = () => {
-    let message = "🐰 *Pedido Páscoa Du*\n\n";
+    let message = "🐰 *PEDIDO - OVOS DE PÁSCOA DU*\n\n";
     
     items.forEach((item, index) => {
       message += `${index + 1}. *${item.productName}*\n`;
-      message += `   📦 ${item.weight}`;
+      message += `   • Peso: ${item.weight}`;
       if (item.flavor) {
-        message += ` | 🍫 ${item.flavor}`;
+        message += `\n   • Sabor: ${item.flavor}`;
       }
-      message += `\n   💰 R$ ${item.price.toFixed(2).replace(".", ",")} x ${item.quantity} = R$ ${(item.price * item.quantity).toFixed(2).replace(".", ",")}\n\n`;
+      message += `\n   • Preço: R$ ${item.price.toFixed(2).replace(".", ",")} x ${item.quantity} = R$ ${(item.price * item.quantity).toFixed(2).replace(".", ",")}\n\n`;
     });
 
     message += `━━━━━━━━━━━━━━━━━━\n`;
-    message += `*TOTAL: R$ ${totalPrice.toFixed(2).replace(".", ",")}*\n\n`;
+    message += `💰 *TOTAL: R$ ${totalPrice.toFixed(2).replace(".", ",")}*\n\n`;
     message += `Olá! Gostaria de fazer este pedido. 😊`;
 
     return encodeURIComponent(message);
@@ -253,7 +253,7 @@ export default function CartDrawer() {
                   <MessageCircle className="w-5 h-5" />
                   {createOrderMutation.isPending
                     ? "Enviando..."
-                    : "Finalizar pelo WhatsApp"}
+                    : "Finalizar pelo WhatsApp 💬"}
                 </Button>
               </div>
             )}
