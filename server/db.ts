@@ -1,11 +1,18 @@
-import { eq } from "drizzle-orm";
+import { eq, and, like, or, asc, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, users, 
+  categories, InsertCategory, Category,
+  products, InsertProduct, Product,
+  productPrices, InsertProductPrice, ProductPrice,
+  flavors, InsertFlavor, Flavor,
+  productFlavors, InsertProductFlavor,
+  orders, InsertOrder, Order
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -17,6 +24,8 @@ export async function getDb() {
   }
   return _db;
 }
+
+// ============ USER FUNCTIONS ============
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
@@ -89,4 +98,270 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ============ CATEGORY FUNCTIONS ============
+
+export async function getAllCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(categories)
+    .where(eq(categories.isActive, true))
+    .orderBy(asc(categories.displayOrder));
+}
+
+export async function getCategoryBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(categories)
+    .where(and(eq(categories.slug, slug), eq(categories.isActive, true)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function createCategory(data: InsertCategory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(categories).values(data);
+}
+
+// ============ PRODUCT FUNCTIONS ============
+
+export async function getAllProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(products)
+    .where(eq(products.isActive, true))
+    .orderBy(asc(products.displayOrder));
+}
+
+export async function getProductsByCategory(categoryId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(products)
+    .where(and(eq(products.categoryId, categoryId), eq(products.isActive, true)))
+    .orderBy(asc(products.displayOrder));
+}
+
+export async function getProductBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(products)
+    .where(and(eq(products.slug, slug), eq(products.isActive, true)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function getProductById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function getFeaturedProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(products)
+    .where(and(eq(products.isFeatured, true), eq(products.isActive, true)))
+    .orderBy(asc(products.displayOrder));
+}
+
+export async function searchProducts(query: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const searchTerm = `%${query}%`;
+  return db.select().from(products)
+    .where(and(
+      eq(products.isActive, true),
+      or(
+        like(products.name, searchTerm),
+        like(products.description, searchTerm),
+        like(products.shortDescription, searchTerm)
+      )
+    ))
+    .orderBy(asc(products.displayOrder));
+}
+
+export async function createProduct(data: InsertProduct) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(products).values(data);
+  return result[0].insertId;
+}
+
+// ============ PRODUCT PRICE FUNCTIONS ============
+
+export async function getProductPrices(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(productPrices)
+    .where(and(eq(productPrices.productId, productId), eq(productPrices.isAvailable, true)))
+    .orderBy(asc(productPrices.weightGrams));
+}
+
+export async function createProductPrice(data: InsertProductPrice) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(productPrices).values(data);
+}
+
+export async function bulkCreateProductPrices(data: InsertProductPrice[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  if (data.length > 0) {
+    await db.insert(productPrices).values(data);
+  }
+}
+
+// ============ FLAVOR FUNCTIONS ============
+
+export async function getAllFlavors() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(flavors)
+    .where(eq(flavors.isActive, true))
+    .orderBy(asc(flavors.displayOrder));
+}
+
+export async function getProductFlavors(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select({
+    flavor: flavors,
+    additionalPrice: productFlavors.additionalPrice
+  })
+    .from(productFlavors)
+    .innerJoin(flavors, eq(productFlavors.flavorId, flavors.id))
+    .where(and(eq(productFlavors.productId, productId), eq(flavors.isActive, true)))
+    .orderBy(asc(flavors.displayOrder));
+  
+  return result;
+}
+
+export async function createFlavor(data: InsertFlavor) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(flavors).values(data);
+  return result[0].insertId;
+}
+
+export async function linkProductFlavor(data: InsertProductFlavor) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(productFlavors).values(data);
+}
+
+// ============ ORDER FUNCTIONS ============
+
+export async function createOrder(data: InsertOrder) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(orders).values(data);
+}
+
+export async function getOrderByNumber(orderNumber: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(orders)
+    .where(eq(orders.orderNumber, orderNumber))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(orders)
+    .orderBy(desc(orders.createdAt));
+}
+
+// ============ FULL PRODUCT WITH DETAILS ============
+
+export async function getProductWithDetails(productId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const product = await getProductById(productId);
+  if (!product) return null;
+  
+  const prices = await getProductPrices(productId);
+  const productFlavorsList = await getProductFlavors(productId);
+  
+  return {
+    ...product,
+    prices,
+    flavors: productFlavorsList
+  };
+}
+
+export async function getProductWithDetailsBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const product = await getProductBySlug(slug);
+  if (!product) return null;
+  
+  const prices = await getProductPrices(product.id);
+  const productFlavorsList = await getProductFlavors(product.id);
+  
+  return {
+    ...product,
+    prices,
+    flavors: productFlavorsList
+  };
+}
+
+// ============ CATALOG DATA ============
+
+export async function getFullCatalog() {
+  const db = await getDb();
+  if (!db) return { categories: [], products: [], flavors: [] };
+  
+  const allCategories = await getAllCategories();
+  const allProducts = await getAllProducts();
+  const allFlavors = await getAllFlavors();
+  
+  // Get prices for all products
+  const productsWithPrices = await Promise.all(
+    allProducts.map(async (product) => {
+      const prices = await getProductPrices(product.id);
+      const productFlavorsList = await getProductFlavors(product.id);
+      return {
+        ...product,
+        prices,
+        flavors: productFlavorsList
+      };
+    })
+  );
+  
+  return {
+    categories: allCategories,
+    products: productsWithPrices,
+    flavors: allFlavors
+  };
+}
