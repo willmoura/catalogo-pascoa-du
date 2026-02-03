@@ -38,3 +38,5 @@
 - [x] Atualizar nome do site para "Ovos de Páscoa Du"
 
 - [x] Corrigir formatação da mensagem do WhatsApp com emojis
+
+- [x] Corrigir renderização dos emojis na mensagem do WhatsApp
