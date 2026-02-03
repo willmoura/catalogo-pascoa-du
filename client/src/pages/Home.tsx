@@ -150,7 +150,7 @@ export default function Home() {
           </div>
           <h3 className="font-semibold text-foreground mb-2">Páscoa Du</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Chocolates Artesanais feitos com amor
+            Ovos de Páscoa feitos com amor
           </p>
           <p className="text-xs text-muted-foreground">
             © 2026 Páscoa Du. Todos os direitos reservados.

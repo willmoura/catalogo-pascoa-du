@@ -75,9 +75,9 @@ export default function Hero({ onScrollToProducts }: HeroProps) {
             transition={{ delay: 0.3 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
           >
-            <span className="gradient-text">Chocolates</span>
+            <span className="gradient-text">Ovos de</span>
             <br />
-            <span className="text-foreground">Artesanais</span>
+            <span className="text-foreground">Páscoa</span>
           </motion.h1>
 
           {/* Subtitle */}

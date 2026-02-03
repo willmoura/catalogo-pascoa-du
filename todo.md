@@ -29,3 +29,8 @@
 - [x] Drawer do carrinho
 - [x] Botão flutuante do WhatsApp
 - [x] Galeria de imagens com zoom
+
+
+## Ajustes Solicitados
+
+- [x] Remover menções de "Chocolates Artesanais" do site

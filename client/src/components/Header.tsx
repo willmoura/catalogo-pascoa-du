@@ -38,9 +38,6 @@ export default function Header({ onSearch }: HeaderProps) {
                 <h1 className="font-bold text-lg text-foreground leading-tight">
                   Páscoa Du
                 </h1>
-                <p className="text-xs text-muted-foreground -mt-0.5">
-                  Chocolates Artesanais
-                </p>
               </div>
             </motion.div>
           </Link>
