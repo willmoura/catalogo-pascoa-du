@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 const gourmetFlavors = [
-  "Franuii",
+  "Franuí",
   "Kinder Bueno",
   "Ferrero Rocher",
   "Ninho com Nutella",
@@ -15,13 +15,17 @@ const gourmetFlavors = [
   "Sensação",
   "Charge",
   "Trufa Tradicional",
+  "Laka Oreo",
 ];
 
 interface LinhaGourmetSectionProps {
   onSelectProduct: (slug: string) => void;
+  isVisible?: boolean;
 }
 
-export default function LinhaGourmetSection({ onSelectProduct }: LinhaGourmetSectionProps) {
+export default function LinhaGourmetSection({ onSelectProduct, isVisible = true }: LinhaGourmetSectionProps) {
+  if (!isVisible) return null;
+  
   return (
     <section className="py-12 md:py-16 bg-background">
       <div className="container">

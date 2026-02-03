@@ -55,3 +55,9 @@
 
 - [x] Corrigir proposta de jornada: remover preços adicionais inventados
 - [x] Incluir todos os sabores da Linha Trufada Gourmet (Franuii, Maracujá com Nutella, Charge, etc.)
+
+
+## Correções Solicitadas
+
+- [x] Corrigir seção Linha Trufada Gourmet para aparecer apenas quando a categoria correspondente estiver selecionada
+- [x] Adicionar sabor Laka Oreo na lista de sabores gourmet

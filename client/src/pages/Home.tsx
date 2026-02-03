@@ -99,8 +99,11 @@ export default function Home() {
         />
       </div>
 
-      {/* Linha Trufada Gourmet Section */}
-      <LinhaGourmetSection onSelectProduct={setSelectedProductSlug} />
+      {/* Linha Trufada Gourmet Section - só aparece quando "Todos" ou "Linha Trufada Gourmet" está selecionado */}
+      <LinhaGourmetSection 
+        onSelectProduct={setSelectedProductSlug} 
+        isVisible={selectedCategory === null || categoryName === "Linha Trufada Gourmet"}
+      />
 
       {/* Products Section */}
       <section className="py-8 md:py-12">

@@ -20,7 +20,8 @@ const SHELLS = [
 const FILLINGS = [
   "Franuí", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella",
   "Maracujá com Nutella", "Maracujá", "Ovomaltine", "Strogonoff de Nozes",
-  "Alpino", "Doce de Leite", "Prestígio", "Sensação", "Charge", "Trufa Tradicional"
+  "Alpino", "Doce de Leite", "Prestígio", "Sensação", "Charge", "Trufa Tradicional",
+  "Laka Oreo"
 ];
 
 interface CustomizeEggProps {
