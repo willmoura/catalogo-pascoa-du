@@ -148,12 +148,12 @@ export default function Home() {
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--chocolate)] to-[var(--gold)] flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">D</span>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Páscoa Du</h3>
+          <h3 className="font-semibold text-foreground mb-2">Ovos de Páscoa Du</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Ovos de Páscoa feitos com amor
           </p>
           <p className="text-xs text-muted-foreground">
-            © 2026 Páscoa Du. Todos os direitos reservados.
+            © 2026 Ovos de Páscoa Du. Todos os direitos reservados.
           </p>
         </div>
       </footer>

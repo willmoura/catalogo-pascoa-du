@@ -34,3 +34,5 @@
 ## Ajustes Solicitados
 
 - [x] Remover menções de "Chocolates Artesanais" do site
+
+- [x] Atualizar nome do site para "Ovos de Páscoa Du"

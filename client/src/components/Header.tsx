@@ -36,7 +36,7 @@ export default function Header({ onSearch }: HeaderProps) {
               </div>
               <div className="hidden sm:block">
                 <h1 className="font-bold text-lg text-foreground leading-tight">
-                  Páscoa Du
+                  Ovos de Páscoa Du
                 </h1>
               </div>
             </motion.div>
