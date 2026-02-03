@@ -11,6 +11,11 @@ const WEIGHTS = [
   { weight: "800g", price: 189.90 },
 ];
 
+const SHELL_TYPES = [
+  { id: "unica", name: "Casca Única", description: "As duas metades do mesmo chocolate" },
+  { id: "duo", name: "Duo", description: "Uma metade de cada chocolate" },
+];
+
 const SHELLS = [
   { id: "ao-leite", name: "Ao Leite", description: "Chocolate ao leite cremoso", color: "#8B4513" },
   { id: "branco", name: "Branco", description: "Chocolate branco suave", color: "#FFF8DC" },
@@ -32,18 +37,25 @@ interface CustomizeEggProps {
 export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const [step, setStep] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<typeof WEIGHTS[0] | null>(null);
+  const [selectedShellType, setSelectedShellType] = useState<typeof SHELL_TYPES[0] | null>(null);
   const [selectedShell, setSelectedShell] = useState<typeof SHELLS[0] | null>(null);
+  const [selectedShell2, setSelectedShell2] = useState<typeof SHELLS[0] | null>(null);
   const [selectedFilling, setSelectedFilling] = useState<string | null>(null);
   const [observations, setObservations] = useState("");
   const { addItem } = useCart();
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const canProceed = () => {
     switch (step) {
       case 1: return selectedWeight !== null;
-      case 2: return selectedShell !== null;
-      case 3: return selectedFilling !== null;
+      case 2: return selectedShellType !== null;
+      case 3: 
+        if (selectedShellType?.id === "duo") {
+          return selectedShell !== null && selectedShell2 !== null && selectedShell.id !== selectedShell2.id;
+        }
+        return selectedShell !== null;
+      case 4: return selectedFilling !== null;
       default: return false;
     }
   };
@@ -65,7 +77,9 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const resetState = () => {
     setStep(1);
     setSelectedWeight(null);
+    setSelectedShellType(null);
     setSelectedShell(null);
+    setSelectedShell2(null);
     setSelectedFilling(null);
     setObservations("");
   };
@@ -75,13 +89,21 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
     onClose();
   };
 
+  const getShellDescription = () => {
+    if (selectedShellType?.id === "duo" && selectedShell && selectedShell2) {
+      return `${selectedShell.name} + ${selectedShell2.name}`;
+    }
+    return selectedShell?.name || "";
+  };
+
   const formatWhatsAppMessage = () => {
-    if (!selectedWeight || !selectedShell || !selectedFilling) return "";
+    if (!selectedWeight || !selectedShellType || !selectedShell || !selectedFilling) return "";
     
     let message = `*PEDIDO PERSONALIZADO - OVOS DE PÁSCOA DU*\n\n`;
     message += `*Meu Ovo Personalizado*\n\n`;
     message += `• Peso: ${selectedWeight.weight}\n`;
-    message += `• Casca: ${selectedShell.name}\n`;
+    message += `• Tipo: ${selectedShellType.name}\n`;
+    message += `• Casca: ${getShellDescription()}\n`;
     message += `• Recheio: ${selectedFilling}\n\n`;
     message += `━━━━━━━━━━━━━━━━━━\n`;
     message += `*TOTAL: R$ ${selectedWeight.price.toFixed(2).replace('.', ',')}*\n`;
@@ -102,17 +124,17 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   };
 
   const handleAddToCart = () => {
-    if (!selectedWeight || !selectedShell || !selectedFilling) return;
+    if (!selectedWeight || !selectedShellType || !selectedShell || !selectedFilling) return;
     
     addItem({
       productId: Date.now(),
       productName: "Ovo Personalizado",
-      productSlug: `personalizado-${selectedShell.id}-${selectedFilling.toLowerCase().replace(/\s+/g, '-')}`,
+      productSlug: `personalizado-${selectedShellType.id}-${selectedShell.id}-${selectedFilling.toLowerCase().replace(/\s+/g, '-')}`,
       imageUrl: null,
       price: selectedWeight.price,
       weight: selectedWeight.weight,
       weightGrams: parseInt(selectedWeight.weight),
-      flavor: `${selectedShell.name} - ${selectedFilling}`,
+      flavor: `${getShellDescription()} - ${selectedFilling}`,
       quantity: 1,
     });
     handleClose();
@@ -225,7 +247,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
               </motion.div>
             )}
 
-            {/* Step 2: Shell */}
+            {/* Step 2: Shell Type (Única ou Duo) */}
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -236,31 +258,42 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 exit="exit"
                 transition={{ duration: 0.3 }}
               >
-                <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha a Casca</h3>
-                <p className="text-gray-600 mb-6">Selecione o tipo de chocolate</p>
+                <h3 className="text-xl font-bold text-amber-900 mb-2">Tipo de Casca</h3>
+                <p className="text-gray-600 mb-6">Escolha se quer cascas iguais ou diferentes</p>
                 
                 <div className="space-y-3">
-                  {SHELLS.map((shell) => (
+                  {SHELL_TYPES.map((type) => (
                     <motion.button
-                      key={shell.id}
+                      key={type.id}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      onClick={() => setSelectedShell(shell)}
-                      className={`relative w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
-                        selectedShell?.id === shell.id
+                      onClick={() => {
+                        setSelectedShellType(type);
+                        // Reset shell selections when changing type
+                        setSelectedShell(null);
+                        setSelectedShell2(null);
+                      }}
+                      className={`relative w-full p-5 rounded-xl border-2 transition-all flex items-center gap-4 ${
+                        selectedShellType?.id === type.id
                           ? "border-amber-500 bg-amber-50"
                           : "border-gray-200 hover:border-amber-300"
                       }`}
                     >
-                      <div
-                        className="w-12 h-12 rounded-full border-2 border-gray-300"
-                        style={{ backgroundColor: shell.color }}
-                      />
-                      <div className="text-left flex-1">
-                        <div className="font-bold text-amber-900">{shell.name}</div>
-                        <div className="text-sm text-gray-600">{shell.description}</div>
+                      <div className="flex-shrink-0">
+                        {type.id === "unica" ? (
+                          <div className="w-14 h-14 rounded-full bg-[#8B4513] border-2 border-gray-300" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-300 flex">
+                            <div className="w-1/2 h-full bg-[#8B4513]" />
+                            <div className="w-1/2 h-full bg-[#FFF8DC]" />
+                          </div>
+                        )}
                       </div>
-                      {selectedShell?.id === shell.id && (
+                      <div className="text-left flex-1">
+                        <div className="font-bold text-amber-900 text-lg">{type.name}</div>
+                        <div className="text-sm text-gray-600">{type.description}</div>
+                      </div>
+                      {selectedShellType?.id === type.id && (
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
@@ -275,10 +308,137 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
               </motion.div>
             )}
 
-            {/* Step 3: Filling */}
+            {/* Step 3: Shell Selection */}
             {step === 3 && (
               <motion.div
                 key="step3"
+                custom={1}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                {selectedShellType?.id === "duo" ? (
+                  <>
+                    <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha as Cascas</h3>
+                    <p className="text-gray-600 mb-6">Selecione dois chocolates diferentes</p>
+                    
+                    {/* First Shell */}
+                    <div className="mb-6">
+                      <p className="text-sm font-semibold text-amber-800 mb-3">Primeira metade:</p>
+                      <div className="space-y-2">
+                        {SHELLS.map((shell) => (
+                          <motion.button
+                            key={`shell1-${shell.id}`}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setSelectedShell(shell)}
+                            disabled={selectedShell2?.id === shell.id}
+                            className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                              selectedShell?.id === shell.id
+                                ? "border-amber-500 bg-amber-50"
+                                : selectedShell2?.id === shell.id
+                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                : "border-gray-200 hover:border-amber-300"
+                            }`}
+                          >
+                            <div
+                              className="w-10 h-10 rounded-full border-2 border-gray-300"
+                              style={{ backgroundColor: shell.color }}
+                            />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-amber-900">{shell.name}</div>
+                            </div>
+                            {selectedShell?.id === shell.id && (
+                              <Check className="w-5 h-5 text-amber-500" />
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Second Shell */}
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800 mb-3">Segunda metade:</p>
+                      <div className="space-y-2">
+                        {SHELLS.map((shell) => (
+                          <motion.button
+                            key={`shell2-${shell.id}`}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setSelectedShell2(shell)}
+                            disabled={selectedShell?.id === shell.id}
+                            className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                              selectedShell2?.id === shell.id
+                                ? "border-amber-500 bg-amber-50"
+                                : selectedShell?.id === shell.id
+                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                : "border-gray-200 hover:border-amber-300"
+                            }`}
+                          >
+                            <div
+                              className="w-10 h-10 rounded-full border-2 border-gray-300"
+                              style={{ backgroundColor: shell.color }}
+                            />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-amber-900">{shell.name}</div>
+                            </div>
+                            {selectedShell2?.id === shell.id && (
+                              <Check className="w-5 h-5 text-amber-500" />
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha a Casca</h3>
+                    <p className="text-gray-600 mb-6">Selecione o tipo de chocolate</p>
+                    
+                    <div className="space-y-3">
+                      {SHELLS.map((shell) => (
+                        <motion.button
+                          key={shell.id}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={() => setSelectedShell(shell)}
+                          className={`relative w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
+                            selectedShell?.id === shell.id
+                              ? "border-amber-500 bg-amber-50"
+                              : "border-gray-200 hover:border-amber-300"
+                          }`}
+                        >
+                          <div
+                            className="w-12 h-12 rounded-full border-2 border-gray-300"
+                            style={{ backgroundColor: shell.color }}
+                          />
+                          <div className="text-left flex-1">
+                            <div className="font-bold text-amber-900">{shell.name}</div>
+                            <div className="text-sm text-gray-600">{shell.description}</div>
+                          </div>
+                          {selectedShell?.id === shell.id && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
+                            >
+                              <Check className="w-4 h-4 text-white" />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {/* Step 4: Filling */}
+            {step === 4 && (
+              <motion.div
+                key="step4"
                 custom={1}
                 variants={slideVariants}
                 initial="enter"
@@ -330,7 +490,8 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
             <div className="flex items-center justify-between text-sm">
               <div className="text-amber-800">
                 {selectedWeight && <span className="mr-2">{selectedWeight.weight}</span>}
-                {selectedShell && <span className="mr-2">• {selectedShell.name}</span>}
+                {selectedShellType && <span className="mr-2">• {selectedShellType.name}</span>}
+                {selectedShell && <span className="mr-2">• {getShellDescription()}</span>}
                 {selectedFilling && <span>• {selectedFilling}</span>}
               </div>
               <div className="font-bold text-amber-900">

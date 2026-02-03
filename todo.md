@@ -61,3 +61,5 @@
 
 - [x] Corrigir seção Linha Trufada Gourmet para aparecer apenas quando a categoria correspondente estiver selecionada
 - [x] Adicionar sabor Laka Oreo na lista de sabores gourmet
+
+- [x] Adicionar opção na jornada de personalização para escolher cascas iguais ou Duo (uma de cada sabor)
