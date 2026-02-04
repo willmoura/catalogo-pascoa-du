@@ -91,3 +91,9 @@
 - [x] Alterar texto do botão Carrinho para "Clique aqui para continuar comprando"
 - [x] Adicionar mais espaçamento entre texto e botão Carrinho
 - [x] Adicionar nova etapa de método de pagamento (PIX, Cartão de Crédito, Cartão de Débito, Dinheiro) antes do resumo
+
+
+## Correções v4
+
+- [x] Trocar ícone de cartão para ícone do PIX na opção de pagamento
+- [x] Corrigir texto "Clique aqui para continuar comprando" para renderizar na versão mobile

@@ -47,7 +47,7 @@ const FILLINGS = [
 ];
 
 const PAYMENT_METHODS = [
-  { id: "pix", name: "PIX", icon: "💳" },
+  { id: "pix", name: "PIX", icon: "pix" },
   { id: "credito", name: "Cartão de Crédito", icon: "💳" },
   { id: "debito", name: "Cartão de Débito", icon: "💳" },
   { id: "dinheiro", name: "Dinheiro", icon: "💵" },
@@ -955,7 +955,13 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                           : "border-gray-200 hover:border-amber-300"
                       }`}
                     >
-                      <div className="text-2xl">{method.icon}</div>
+                      <div className="text-2xl">
+                        {method.icon === "pix" ? (
+                          <svg width="24" height="24" viewBox="0 0 512 512" fill="currentColor" className="text-teal-600">
+                            <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.6 391.5 392.6 391.5H407.7L310.6 488.6C280.3 518.1 231.1 518.1 200.8 488.6L103.3 391.2H112.6C132.6 391.2 151.5 383.4 165.7 369.2L242.4 292.5zM262.5 218.9C257.1 224.4 247.9 224.5 242.4 218.9L165.7 142.2C151.5 128 132.6 120.2 112.6 120.2H103.3L200.2 23.3C230.4-7 279.6-7 309.9 23.3L407.8 121.2H392.6C372.6 121.2 353.7 129 339.5 143.2L262.5 218.9zM112.6 142.7C126.4 142.7 139.1 148.3 148.7 157.9L225.4 234.7C233.6 242.9 244.8 247 256 247C267.2 247 278.4 242.9 286.6 234.7L363.3 157.9C372.9 148.3 385.6 142.7 399.4 142.7H445.4L488.6 185.9C518.9 216.2 518.9 265.4 488.6 295.7L445.4 338.9H399.4C385.6 338.9 372.9 344.5 363.3 354.1L286.6 430.9C278.4 439.1 267.2 443.2 256 443.2C244.8 443.2 233.6 439.1 225.4 430.9L148.7 354.1C139.1 344.5 126.4 338.9 112.6 338.9H66.6L23.4 295.7C-6.9 265.4-6.9 216.2 23.4 185.9L66.6 142.7H112.6z"/>
+                          </svg>
+                        ) : method.icon}
+                      </div>
                       <div className="text-left flex-1">
                         <div className="font-bold text-amber-900">{method.name}</div>
                       </div>
@@ -1142,13 +1148,13 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                   onClick={handleAddToCart}
                   disabled={!canProceed()}
                   variant="outline"
-                  className="py-5 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl flex flex-col items-center justify-center h-auto min-h-[70px]"
+                  className="py-4 px-2 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl flex flex-col items-center justify-center h-auto min-h-[80px]"
                 >
-                  <div className="flex items-center mb-1">
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    <span className="font-semibold">Carrinho</span>
+                  <div className="flex items-center gap-1 mb-1">
+                    <ShoppingCart className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-semibold text-sm">Carrinho</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-normal">Clique aqui para continuar comprando</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 font-normal text-center leading-tight px-1">Clique aqui para continuar comprando</span>
                 </Button>
                 <Button
                   onClick={handleWhatsApp}
