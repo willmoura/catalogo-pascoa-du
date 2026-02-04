@@ -46,6 +46,13 @@ const FILLINGS = [
   "Laka Oreo"
 ];
 
+const PAYMENT_METHODS = [
+  { id: "pix", name: "PIX", icon: "💳" },
+  { id: "credito", name: "Cartão de Crédito", icon: "💳" },
+  { id: "debito", name: "Cartão de Débito", icon: "💳" },
+  { id: "dinheiro", name: "Dinheiro", icon: "💵" },
+];
+
 interface ShellConfig {
   shell: typeof SHELLS[0] | null;
   finishType: typeof FINISH_TYPES[0] | null;
@@ -78,6 +85,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   });
   
   const [observations, setObservations] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<typeof PAYMENT_METHODS[0] | null>(null);
   const { addItem } = useCart();
 
   // Calcular se precisa de etapa de recheio
@@ -96,9 +104,10 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
     // Etapa 4: Tipo de Acabamento (pedaços ou recheada)
     // Etapa 5: Escolha de Pedaços (se aplicável)
     // Etapa 6: Escolha de Recheio (se aplicável)
+    // Etapa 7: Método de Pagamento
     // Etapa Final: Resumo do Pedido
     
-    let steps = 5; // Base: Peso, Tipo, Cascas, Acabamento + Resumo
+    let steps = 6; // Base: Peso, Tipo, Cascas, Acabamento, Pagamento + Resumo
     
     // Se alguma casca tem pedaços, adiciona etapa de pedaços
     const hasPieces = shell1Config.finishType?.id === "pedacos" || 
@@ -124,13 +133,18 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
       case 5: {
         if (hasPieces) return "pieces";
         if (needsFillingStep) return "filling";
-        return "summary";
+        return "payment";
       }
       case 6: {
         if (hasPieces && needsFillingStep) return "filling";
+        if (hasPieces || needsFillingStep) return "payment";
         return "summary";
       }
-      case 7: return "summary";
+      case 7: {
+        if (hasPieces && needsFillingStep) return "payment";
+        return "summary";
+      }
+      case 8: return "summary";
       default: return "summary";
     }
   };
@@ -168,6 +182,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
         if (shell2NeedsFilling && !shell2Config.filling) return false;
         return true;
       }
+      case "payment": return selectedPaymentMethod !== null;
       default: return true;
     }
   };
@@ -197,6 +212,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
     setShell1Config({ shell: null, finishType: null, pieces: null, filling: null });
     setShell2Config({ shell: null, finishType: null, pieces: null, filling: null });
     setObservations("");
+    setSelectedPaymentMethod(null);
   };
 
   const handleClose = () => {
@@ -257,13 +273,16 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
       }
     }
     
-    message += `\n━━━━━━━━━━━━━━━━━━\n`;
+     message += `━━━━━━━━━━━━━━━━━━\n`;
     message += `*TOTAL: R$ ${selectedWeight.price.toFixed(2).replace('.', ',')}*\n`;
     message += `━━━━━━━━━━━━━━━━━━\n\n`;
-    if (observations) {
-      message += `Observações: ${observations}\n\n`;
+    if (selectedPaymentMethod) {
+      message += `💳 *Forma de Pagamento:* ${selectedPaymentMethod.name}\n\n`;
     }
-    message += `Olá! Gostaria de fazer este pedido personalizado.`;
+    if (observations) {
+      message += `📝 *Observações:* ${observations}\n\n`;
+    }
+    message += `Olá! Gostaria de fazer este pedido personalizado.`;;
     
     return encodeURIComponent(message);
   };
@@ -909,6 +928,52 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
               </motion.div>
             )}
 
+            {/* Step: Payment Method */}
+            {currentStepContent === "payment" && (
+              <motion.div
+                key="payment"
+                custom={1}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-xl font-bold text-amber-900 mb-2">Forma de Pagamento</h3>
+                <p className="text-gray-600 mb-6">Como você prefere pagar?</p>
+                
+                <div className="space-y-3">
+                  {PAYMENT_METHODS.map((method) => (
+                    <motion.button
+                      key={method.id}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => setSelectedPaymentMethod(method)}
+                      className={`relative w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
+                        selectedPaymentMethod?.id === method.id
+                          ? "border-amber-500 bg-amber-50"
+                          : "border-gray-200 hover:border-amber-300"
+                      }`}
+                    >
+                      <div className="text-2xl">{method.icon}</div>
+                      <div className="text-left flex-1">
+                        <div className="font-bold text-amber-900">{method.name}</div>
+                      </div>
+                      {selectedPaymentMethod?.id === method.id && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
+                        >
+                          <Check className="w-4 h-4 text-white" />
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {/* Step: Summary - Resumo do Pedido */}
             {currentStepContent === "summary" && (
               <motion.div
@@ -922,8 +987,8 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
               >
                 <h3 className="text-xl font-bold text-amber-900 mb-2">Resumo do Pedido</h3>
                 <p className="text-gray-600 mb-4">Revise suas escolhas antes de finalizar</p>
-                <p className="text-sm text-amber-700 bg-amber-100 p-3 rounded-lg mb-4">
-                  Finalize pelo WhatsApp ou adicione ao carrinho se quiser escolher mais ovos.
+                <p className="text-sm text-green-700 bg-green-100 p-3 rounded-lg mb-4 font-medium">
+                  Finalize pelo WhatsApp
                 </p>
                 
                 <div className="bg-amber-50 rounded-xl p-4 space-y-4">
@@ -1009,6 +1074,12 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     </>
                   )}
                   
+                  {/* Pagamento */}
+                  <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                    <span className="text-gray-600">Pagamento</span>
+                    <span className="font-semibold text-amber-900">{selectedPaymentMethod?.name}</span>
+                  </div>
+                  
                   {/* Total */}
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-lg font-bold text-amber-900">Total</span>
@@ -1066,23 +1137,23 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 rows={2}
               />
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <Button
                   onClick={handleAddToCart}
                   disabled={!canProceed()}
                   variant="outline"
-                  className="py-6 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl flex flex-col items-center gap-1"
+                  className="py-5 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl flex flex-col items-center justify-center h-auto min-h-[70px]"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center mb-1">
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Carrinho
+                    <span className="font-semibold">Carrinho</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-normal">Adicionar mais ovos</span>
+                  <span className="text-xs text-gray-500 font-normal">Clique aqui para continuar comprando</span>
                 </Button>
                 <Button
                   onClick={handleWhatsApp}
                   disabled={!canProceed()}
-                  className="py-6 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                  className="py-5 bg-green-600 hover:bg-green-700 text-white rounded-xl h-auto min-h-[70px]"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
                   WhatsApp

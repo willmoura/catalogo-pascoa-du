@@ -83,3 +83,11 @@
 - [x] Laka Oreo só aparece para casca branca
 - [x] Melhorar texto do botão Carrinho explicando que é para adicionar mais ovos
 - [x] Destacar que WhatsApp é para finalizar se não quiser escolher outros
+
+
+## Alterações na Jornada v3
+
+- [x] Alterar texto do resumo para "Finalize pelo WhatsApp"
+- [x] Alterar texto do botão Carrinho para "Clique aqui para continuar comprando"
+- [x] Adicionar mais espaçamento entre texto e botão Carrinho
+- [x] Adicionar nova etapa de método de pagamento (PIX, Cartão de Crédito, Cartão de Débito, Dinheiro) antes do resumo
