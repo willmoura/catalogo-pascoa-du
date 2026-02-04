@@ -72,3 +72,5 @@
 - [x] Sabores de Recheio: 15 opções incluindo Laka Oreo
 - [x] Fluxo condicional: Etapa de recheio só aparece se casca for Recheada
 - [x] Alterar barra de progresso para stepper linear segmentado
+
+- [x] Adicionar etapa final de resumo do pedido para revisar escolhas antes de finalizar

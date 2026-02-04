@@ -91,8 +91,9 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
     // Etapa 4: Tipo de Acabamento (pedaços ou recheada)
     // Etapa 5: Escolha de Pedaços (se aplicável)
     // Etapa 6: Escolha de Recheio (se aplicável)
+    // Etapa Final: Resumo do Pedido
     
-    let steps = 4; // Base: Peso, Tipo, Cascas, Acabamento
+    let steps = 5; // Base: Peso, Tipo, Cascas, Acabamento + Resumo
     
     // Se alguma casca tem pedaços, adiciona etapa de pedaços
     const hasPieces = shell1Config.finishType?.id === "pedacos" || 
@@ -107,22 +108,24 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
   // Determinar qual é a etapa atual baseado no contexto
   const getStepContent = () => {
+    const hasPieces = shell1Config.finishType?.id === "pedacos" || 
+                      (selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos");
+    
     switch (step) {
       case 1: return "weight";
       case 2: return "shellType";
       case 3: return "shells";
       case 4: return "finishType";
       case 5: {
-        const hasPieces = shell1Config.finishType?.id === "pedacos" || 
-                          (selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos");
         if (hasPieces) return "pieces";
         if (needsFillingStep) return "filling";
         return "summary";
       }
       case 6: {
-        if (needsFillingStep) return "filling";
+        if (hasPieces && needsFillingStep) return "filling";
         return "summary";
       }
+      case 7: return "summary";
       default: return "summary";
     }
   };
@@ -898,6 +901,114 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     </div>
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {/* Step: Summary - Resumo do Pedido */}
+            {currentStepContent === "summary" && (
+              <motion.div
+                key="summary"
+                custom={1}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-xl font-bold text-amber-900 mb-2">Resumo do Pedido</h3>
+                <p className="text-gray-600 mb-6">Revise suas escolhas antes de finalizar</p>
+                
+                <div className="bg-amber-50 rounded-xl p-4 space-y-4">
+                  {/* Peso */}
+                  <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                    <span className="text-gray-600">Peso</span>
+                    <span className="font-semibold text-amber-900">{selectedWeight?.weight}</span>
+                  </div>
+                  
+                  {/* Tipo */}
+                  <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                    <span className="text-gray-600">Tipo</span>
+                    <span className="font-semibold text-amber-900">{selectedShellType?.name}</span>
+                  </div>
+                  
+                  {/* Casca(s) */}
+                  <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                    <span className="text-gray-600">Casca</span>
+                    <span className="font-semibold text-amber-900">{getShellDescription()}</span>
+                  </div>
+                  
+                  {/* Detalhes da Casca 1 */}
+                  {selectedShellType?.id === "duo" ? (
+                    <>
+                      <div className="bg-white rounded-lg p-3 space-y-2">
+                        <div className="text-sm font-semibold text-amber-800">Primeira metade ({shell1Config.shell?.name}):</div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-sm">Acabamento</span>
+                          <span className="font-medium text-amber-900 text-sm">{shell1Config.finishType?.name}</span>
+                        </div>
+                        {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 text-sm">Pedaços</span>
+                            <span className="font-medium text-amber-900 text-sm">{shell1Config.pieces}</span>
+                          </div>
+                        )}
+                        {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 text-sm">Recheio</span>
+                            <span className="font-medium text-amber-900 text-sm">{shell1Config.filling}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 space-y-2">
+                        <div className="text-sm font-semibold text-amber-800">Segunda metade ({shell2Config.shell?.name}):</div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-sm">Acabamento</span>
+                          <span className="font-medium text-amber-900 text-sm">{shell2Config.finishType?.name}</span>
+                        </div>
+                        {shell2Config.finishType?.id === "pedacos" && shell2Config.pieces && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 text-sm">Pedaços</span>
+                            <span className="font-medium text-amber-900 text-sm">{shell2Config.pieces}</span>
+                          </div>
+                        )}
+                        {shell2Config.finishType?.id === "recheada" && shell2Config.filling && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 text-sm">Recheio</span>
+                            <span className="font-medium text-amber-900 text-sm">{shell2Config.filling}</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                        <span className="text-gray-600">Acabamento</span>
+                        <span className="font-semibold text-amber-900">{shell1Config.finishType?.name}</span>
+                      </div>
+                      {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
+                        <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                          <span className="text-gray-600">Pedaços</span>
+                          <span className="font-semibold text-amber-900">{shell1Config.pieces}</span>
+                        </div>
+                      )}
+                      {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
+                        <div className="flex justify-between items-center pb-3 border-b border-amber-200">
+                          <span className="text-gray-600">Recheio</span>
+                          <span className="font-semibold text-amber-900">{shell1Config.filling}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Total */}
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-lg font-bold text-amber-900">Total</span>
+                    <span className="text-xl font-bold text-green-600">
+                      R$ {selectedWeight?.price.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
