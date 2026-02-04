@@ -74,3 +74,12 @@
 - [x] Alterar barra de progresso para stepper linear segmentado
 
 - [x] Adicionar etapa final de resumo do pedido para revisar escolhas antes de finalizar
+
+
+## Alterações na Jornada - Solicitação do Usuário
+
+- [x] Alterar descrição "Com Pedaços" para indicar que são pedaços de castanhas ou amêndoas
+- [x] Remover opções Oreo e Laka Oreo para casca de chocolate ao leite ou amargo
+- [x] Laka Oreo só aparece para casca branca
+- [x] Melhorar texto do botão Carrinho explicando que é para adicionar mais ovos
+- [x] Destacar que WhatsApp é para finalizar se não quiser escolher outros

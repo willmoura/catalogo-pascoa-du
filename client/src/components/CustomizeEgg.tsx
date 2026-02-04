@@ -23,16 +23,21 @@ const SHELLS = [
 ];
 
 const FINISH_TYPES = [
-  { id: "pedacos", name: "Com Pedaços", description: "Casca com pedaços crocantes" },
+  { id: "pedacos", name: "Com Pedaços", description: "Casca com pedaços de castanhas ou amêndoas" },
   { id: "recheada", name: "Recheada", description: "Casca com recheio cremoso" },
 ];
 
-const PIECES_OPTIONS = [
-  "Avelã",
-  "Castanha de Caju",
-  "Oreo",
-  "Laka Oreo",
-];
+// Pedaços disponíveis por tipo de casca
+// Oreo e Laka Oreo só disponíveis para casca branca
+const PIECES_OPTIONS_BASE = ["Avelã", "Castanha de Caju"];
+const PIECES_OPTIONS_WHITE_ONLY = ["Laka Oreo"];
+
+const getPiecesOptionsForShell = (shellId: string | undefined) => {
+  if (shellId === "branco") {
+    return [...PIECES_OPTIONS_BASE, ...PIECES_OPTIONS_WHITE_ONLY];
+  }
+  return PIECES_OPTIONS_BASE;
+};
 
 const FILLINGS = [
   "Franuí", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella",
@@ -751,7 +756,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       </p>
                     )}
                     <div className="grid grid-cols-2 gap-3">
-                      {PIECES_OPTIONS.map((piece) => (
+                      {getPiecesOptionsForShell(shell1Config.shell?.id).map((piece) => (
                         <motion.button
                           key={`piece1-${piece}`}
                           whileHover={{ scale: 1.02 }}
@@ -786,7 +791,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       {shell2Config.shell?.name}:
                     </p>
                     <div className="grid grid-cols-2 gap-3">
-                      {PIECES_OPTIONS.map((piece) => (
+                      {getPiecesOptionsForShell(shell2Config.shell?.id).map((piece) => (
                         <motion.button
                           key={`piece2-${piece}`}
                           whileHover={{ scale: 1.02 }}
@@ -916,7 +921,10 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 transition={{ duration: 0.3 }}
               >
                 <h3 className="text-xl font-bold text-amber-900 mb-2">Resumo do Pedido</h3>
-                <p className="text-gray-600 mb-6">Revise suas escolhas antes de finalizar</p>
+                <p className="text-gray-600 mb-4">Revise suas escolhas antes de finalizar</p>
+                <p className="text-sm text-amber-700 bg-amber-100 p-3 rounded-lg mb-4">
+                  Finalize pelo WhatsApp ou adicione ao carrinho se quiser escolher mais ovos.
+                </p>
                 
                 <div className="bg-amber-50 rounded-xl p-4 space-y-4">
                   {/* Peso */}
@@ -1063,10 +1071,13 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                   onClick={handleAddToCart}
                   disabled={!canProceed()}
                   variant="outline"
-                  className="py-6 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl"
+                  className="py-6 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl flex flex-col items-center gap-1"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Carrinho
+                  <div className="flex items-center">
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Carrinho
+                  </div>
+                  <span className="text-xs text-gray-500 font-normal">Adicionar mais ovos</span>
                 </Button>
                 <Button
                   onClick={handleWhatsApp}
