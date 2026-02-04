@@ -63,3 +63,12 @@
 - [x] Adicionar sabor Laka Oreo na lista de sabores gourmet
 
 - [x] Adicionar opção na jornada de personalização para escolher cascas iguais ou Duo (uma de cada sabor)
+
+
+## Alterações na Jornada de Personalização v2
+
+- [x] Implementar nova etapa: Tipo de Acabamento (Pedaços ou Recheada) para cada casca
+- [x] Casca com Pedaços: Avelã, Castanha de Caju, Oreo, Laka Oreo
+- [x] Sabores de Recheio: 15 opções incluindo Laka Oreo
+- [x] Fluxo condicional: Etapa de recheio só aparece se casca for Recheada
+- [x] Alterar barra de progresso para stepper linear segmentado
