@@ -23,6 +23,9 @@ interface CartContextType {
   totalPrice: number;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  checkoutStep: "review" | "hub";
+  setCheckoutStep: (step: "review" | "hub") => void;
+  openCheckout: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -36,8 +39,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return saved ? JSON.parse(saved) : [];
     }
     return [];
+    return [];
   });
   const [isOpen, setIsOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<"review" | "hub">("review");
 
   // Persist cart to localStorage
   useEffect(() => {
@@ -90,8 +95,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       prev.map((item) =>
         item.productId === productId &&
-        item.weight === weight &&
-        item.flavorId === flavorId
+          item.weight === weight &&
+          item.flavorId === flavorId
           ? { ...item, quantity }
           : item
       )
@@ -100,6 +105,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    setCheckoutStep("review");
+  };
+
+  const openCheckout = () => {
+    setCheckoutStep("hub");
+    setIsOpen(true);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -120,6 +131,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         totalPrice,
         isOpen,
         setIsOpen,
+        checkoutStep,
+        setCheckoutStep,
+        openCheckout,
       }}
     >
       {children}

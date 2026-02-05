@@ -41,7 +41,7 @@ interface ProductModalProps {
 }
 
 export default function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
-  const { addItem, setIsOpen: setCartOpen } = useCart();
+  const { addItem, setIsOpen: setCartOpen, openCheckout } = useCart();
   const [selectedPrice, setSelectedPrice] = useState<ProductPrice | null>(null);
   const [selectedFlavor, setSelectedFlavor] = useState<ProductFlavor | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -70,10 +70,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
 
   const totalPrice = selectedPrice
     ? parseFloat(selectedPrice.price) * quantity +
-      (selectedFlavor ? parseFloat(selectedFlavor.additionalPrice || "0") * quantity : 0)
+    (selectedFlavor ? parseFloat(selectedFlavor.additionalPrice || "0") * quantity : 0)
     : 0;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (action: 'continue' | 'checkout') => {
     if (!selectedPrice) {
       toast.error("Selecione um tamanho");
       return;
@@ -92,14 +92,16 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
       flavorId: selectedFlavor?.flavor.id,
     });
 
-    toast.success("Adicionado ao carrinho!", {
-      action: {
-        label: "Ver carrinho",
-        onClick: () => setCartOpen(true),
-      },
-    });
-
-    onClose();
+    if (action === 'continue') {
+      toast.success("Adicionado ao carrinho!");
+      onClose();
+    } else {
+      onClose();
+      // Pequeno delay para garantir que o modal feche antes do drawer abrir suavemente
+      setTimeout(() => {
+        openCheckout();
+      }, 100);
+    }
   };
 
   const nextImage = () => {
@@ -176,11 +178,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                             <button
                               key={idx}
                               onClick={() => setCurrentImageIndex(idx)}
-                              className={`w-2 h-2 rounded-full transition-all ${
-                                idx === currentImageIndex
+                              className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex
                                   ? "bg-primary w-4"
                                   : "bg-background/60"
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -228,11 +229,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setSelectedPrice(price)}
-                        className={`px-4 py-3 rounded-xl border-2 transition-all ${
-                          selectedPrice?.id === price.id
+                        className={`px-4 py-3 rounded-xl border-2 transition-all ${selectedPrice?.id === price.id
                             ? "border-primary bg-primary/10"
                             : "border-border hover:border-primary/50"
-                        }`}
+                          }`}
                       >
                         <span className="block font-semibold">{price.weight}</span>
                         <span className="text-sm text-primary font-bold">
@@ -256,11 +256,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedFlavor(flavorItem)}
-                          className={`px-4 py-2 rounded-full border-2 transition-all ${
-                            selectedFlavor?.flavor.id === flavorItem.flavor.id
+                          className={`px-4 py-2 rounded-full border-2 transition-all ${selectedFlavor?.flavor.id === flavorItem.flavor.id
                               ? "border-primary bg-primary/10"
                               : "border-border hover:border-primary/50"
-                          }`}
+                            }`}
                         >
                           {flavorItem.flavor.name}
                           {parseFloat(flavorItem.additionalPrice || "0") > 0 && (
@@ -291,7 +290,7 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Ideal para section */}
                     <div className="mt-4 p-4 bg-[var(--chocolate)] rounded-xl">
                       <h4 className="font-semibold text-[var(--cream)] mb-2 uppercase text-sm tracking-wide">
@@ -354,14 +353,24 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                       R$ {totalPrice.toFixed(2).replace(".", ",")}
                     </p>
                   </div>
-                  <Button
-                    size="lg"
-                    className="flex-1 max-w-xs rounded-xl gap-2"
-                    onClick={handleAddToCart}
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    Adicionar
-                  </Button>
+                  <div className="flex gap-2 flex-1 max-w-md">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="flex-1 rounded-xl border-primary text-primary hover:bg-primary/10"
+                      onClick={() => handleAddToCart('continue')}
+                    >
+                      Adicionar e continuar
+                    </Button>
+                    <Button
+                      size="lg"
+                      className="flex-1 rounded-xl gap-2 font-bold"
+                      onClick={() => handleAddToCart('checkout')}
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      Finalizar Pedido
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
