@@ -88,7 +88,7 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
             transition={{ delay: 0.4 }}
             className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto"
           >
-            Ovos de Páscoa feitos com amor e ingredientes selecionados. 
+            Ovos de Páscoa feitos com amor e ingredientes selecionados.
             Cada mordida é uma experiência única de sabor e qualidade.
           </motion.p>
 
@@ -101,21 +101,21 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
           >
             <Button
               size="lg"
-              className="rounded-full px-8 gap-2 shadow-lg shadow-primary/25"
+              className="w-full min-w-0 rounded-full px-8 gap-2 shadow-lg shadow-primary/25 whitespace-nowrap overflow-hidden"
               onClick={onScrollToProducts}
             >
-              Ver Catálogo
-              <ChevronDown className="w-4 h-4" />
+              <span className="truncate">Ver Catálogo</span>
+              <ChevronDown className="w-4 h-4 shrink-0" />
             </Button>
             {onCustomize && (
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white"
+                className="w-full min-w-0 rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap overflow-hidden"
                 onClick={onCustomize}
               >
-                <Sparkles className="w-4 h-4" />
-                Monte seu Ovo
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span className="truncate">Monte seu Ovo</span>
               </Button>
             )}
           </motion.div>
@@ -126,7 +126,7 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden"
         >
           <motion.div
             animate={{ y: [0, 8, 0] }}
