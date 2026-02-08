@@ -1,0 +1,74 @@
+{
+  "query": "SELECT id, name FROM flavors LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ybigjze5zrQRNb.root --database mAyHYydgnUj6kaCQZYvmfs --execute SELECT id, name FROM flavors LIMIT 20;",
+  "rows": [
+    {
+      "id": "2",
+      "name": "Maracujá"
+    },
+    {
+      "id": "3",
+      "name": "Morango"
+    },
+    {
+      "id": "7",
+      "name": "Pistache"
+    },
+    {
+      "id": "30001",
+      "name": "Franuí"
+    },
+    {
+      "id": "30002",
+      "name": "Kinder Bueno"
+    },
+    {
+      "id": "30003",
+      "name": "Ferrero Rocher"
+    },
+    {
+      "id": "30004",
+      "name": "Ninho com Nutella"
+    },
+    {
+      "id": "30005",
+      "name": "Maracujá com Nutella"
+    },
+    {
+      "id": "30006",
+      "name": "Maracujá"
+    },
+    {
+      "id": "30007",
+      "name": "Ovomaltine"
+    },
+    {
+      "id": "30008",
+      "name": "Strogonoff de Nozes"
+    },
+    {
+      "id": "30009",
+      "name": "Alpino"
+    },
+    {
+      "id": "30010",
+      "name": "Doce de Leite"
+    },
+    {
+      "id": "30011",
+      "name": "Prestígio"
+    },
+    {
+      "id": "30012",
+      "name": "Sensação"
+    },
+    {
+      "id": "30013",
+      "name": "Charge"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\n2\tMaracujá\n3\tMorango\n7\tPistache\n30001\tFranuí\n30002\tKinder Bueno\n30003\tFerrero Rocher\n30004\tNinho com Nutella\n30005\tMaracujá com Nutella\n30006\tMaracujá\n30007\tOvomaltine\n30008\tStrogonoff de Nozes\n30009\tAlpino\n30010\tDoce de Leite\n30011\tPrestígio\n30012\tSensação\n30013\tCharge\n",
+  "stderr": "",
+  "execution_time_ms": 360
+}

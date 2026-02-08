@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, slug FROM categories LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ybigjze5zrQRNb.root --database mAyHYydgnUj6kaCQZYvmfs --execute SELECT id, name, slug FROM categories LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Ovos Trufados",
+      "slug": "ovos-trufados"
+    },
+    {
+      "id": "2",
+      "name": "Ao Leite",
+      "slug": "ao-leite"
+    },
+    {
+      "id": "3",
+      "name": "Duo",
+      "slug": "duo"
+    },
+    {
+      "id": "4",
+      "name": "Amargo",
+      "slug": "amargo"
+    },
+    {
+      "id": "5",
+      "name": "Mini Ovos",
+      "slug": "mini-ovos"
+    },
+    {
+      "id": "30001",
+      "name": "Talentino",
+      "slug": "talentino"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tslug\n1\tOvos Trufados\tovos-trufados\n2\tAo Leite\tao-leite\n3\tDuo\tduo\n4\tAmargo\tamargo\n5\tMini Ovos\tmini-ovos\n30001\tTalentino\ttalentino\n",
+  "stderr": "",
+  "execution_time_ms": 350
+}

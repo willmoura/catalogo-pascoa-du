@@ -1,0 +1,88 @@
+{
+  "query": "SELECT pf.id, pf.productId, f.name as flavor_name, pf.additionalPrice FROM product_flavors pf JOIN flavors f ON pf.flavorId = f.id WHERE pf.productId = 30003;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ybigjze5zrQRNb.root --database mAyHYydgnUj6kaCQZYvmfs --execute SELECT pf.id, pf.productId, f.name as flavor_name, pf.additionalPrice FROM product_flavors pf JOIN flavors f ON pf.flavorId = f.id WHERE pf.productId = 30003;",
+  "rows": [
+    {
+      "id": "30001",
+      "productId": "30003",
+      "flavor_name": "Franuí",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30002",
+      "productId": "30003",
+      "flavor_name": "Kinder Bueno",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30003",
+      "productId": "30003",
+      "flavor_name": "Ferrero Rocher",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30004",
+      "productId": "30003",
+      "flavor_name": "Ninho com Nutella",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30005",
+      "productId": "30003",
+      "flavor_name": "Maracujá com Nutella",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30006",
+      "productId": "30003",
+      "flavor_name": "Maracujá",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30007",
+      "productId": "30003",
+      "flavor_name": "Ovomaltine",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30008",
+      "productId": "30003",
+      "flavor_name": "Strogonoff de Nozes",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30009",
+      "productId": "30003",
+      "flavor_name": "Alpino",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30010",
+      "productId": "30003",
+      "flavor_name": "Doce de Leite",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30011",
+      "productId": "30003",
+      "flavor_name": "Prestígio",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30012",
+      "productId": "30003",
+      "flavor_name": "Sensação",
+      "additionalPrice": "0.00"
+    },
+    {
+      "id": "30013",
+      "productId": "30003",
+      "flavor_name": "Charge",
+      "additionalPrice": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tproductId\tflavor_name\tadditionalPrice\n30001\t30003\tFranuí\t0.00\n30002\t30003\tKinder Bueno\t0.00\n30003\t30003\tFerrero Rocher\t0.00\n30004\t30003\tNinho com Nutella\t0.00\n30005\t30003\tMaracujá com Nutella\t0.00\n30006\t30003\tMaracujá\t0.00\n30007\t30003\tOvomaltine\t0.00\n30008\t30003\tStrogonoff de Nozes\t0.00\n30009\t30003\tAlpino\t0.00\n30010\t30003\tDoce de Leite\t0.00\n30011\t30003\tPrestígio\t0.00\n30012\t30003\tSensação\t0.00\n30013\t30003\tCharge\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 367
+}

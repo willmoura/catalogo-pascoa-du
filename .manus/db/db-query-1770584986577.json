@@ -1,0 +1,13 @@
+{
+  "query": "SELECT id FROM categories WHERE slug = 'branco';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ybigjze5zrQRNb.root --database mAyHYydgnUj6kaCQZYvmfs --execute SELECT id FROM categories WHERE slug = 'branco';",
+  "rows": [
+    {
+      "id": "60001"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\n60001\n",
+  "stderr": "",
+  "execution_time_ms": 346
+}
