@@ -9,7 +9,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductModal from "@/components/ProductModal";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import LinhaGourmetSection from "@/components/LinhaGourmetSection";
+
 import CustomizeEgg from "@/components/CustomizeEgg";
 
 export default function Home() {
@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} />
-      
+
       <Hero onScrollToProducts={scrollToProducts} onCustomize={() => setIsCustomizeOpen(true)} />
 
       {/* Categories */}
@@ -99,11 +99,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Linha Trufada Gourmet Section - só aparece quando "Todos" ou "Linha Trufada Gourmet" está selecionado */}
-      <LinhaGourmetSection 
-        onSelectProduct={setSelectedProductSlug} 
-        isVisible={selectedCategory === null || categoryName === "Linha Trufada Gourmet"}
-      />
+
 
       {/* Products Section */}
       <section className="py-8 md:py-12">
