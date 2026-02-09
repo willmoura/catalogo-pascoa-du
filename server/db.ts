@@ -1,7 +1,7 @@
 import { eq, and, like, or, asc, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, users, 
+import {
+  InsertUser, users,
   categories, InsertCategory, Category,
   products, InsertProduct, Product,
   productPrices, InsertProductPrice, ProductPrice,
@@ -11,16 +11,23 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
+import mysql from "mysql2/promise";
+
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
+    console.log("[Database] Initializing connection pool...");
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const pool = mysql.createPool(process.env.DATABASE_URL);
+      _db = drizzle(pool);
+      console.log("[Database] Connection pool initialized successfully.");
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.error("[Database] Failed to connect:", error);
       _db = null;
     }
+  } else if (!_db) {
+    console.warn("[Database] DATABASE_URL is missing!");
   }
   return _db;
 }
@@ -103,7 +110,7 @@ export async function getUserByOpenId(openId: string) {
 export async function getAllCategories() {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(categories)
     .where(eq(categories.isActive, true))
     .orderBy(asc(categories.displayOrder));
@@ -112,18 +119,18 @@ export async function getAllCategories() {
 export async function getCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const result = await db.select().from(categories)
     .where(and(eq(categories.slug, slug), eq(categories.isActive, true)))
     .limit(1);
-  
+
   return result[0] || null;
 }
 
 export async function createCategory(data: InsertCategory) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   await db.insert(categories).values(data);
 }
 
@@ -132,7 +139,7 @@ export async function createCategory(data: InsertCategory) {
 export async function getAllProducts() {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(products)
     .where(eq(products.isActive, true))
     .orderBy(asc(products.displayOrder));
@@ -141,7 +148,7 @@ export async function getAllProducts() {
 export async function getProductsByCategory(categoryId: number) {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(products)
     .where(and(eq(products.categoryId, categoryId), eq(products.isActive, true)))
     .orderBy(asc(products.displayOrder));
@@ -150,29 +157,29 @@ export async function getProductsByCategory(categoryId: number) {
 export async function getProductBySlug(slug: string) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const result = await db.select().from(products)
     .where(and(eq(products.slug, slug), eq(products.isActive, true)))
     .limit(1);
-  
+
   return result[0] || null;
 }
 
 export async function getProductById(id: number) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const result = await db.select().from(products)
     .where(eq(products.id, id))
     .limit(1);
-  
+
   return result[0] || null;
 }
 
 export async function getFeaturedProducts() {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(products)
     .where(and(eq(products.isFeatured, true), eq(products.isActive, true)))
     .orderBy(asc(products.displayOrder));
@@ -181,7 +188,7 @@ export async function getFeaturedProducts() {
 export async function searchProducts(query: string) {
   const db = await getDb();
   if (!db) return [];
-  
+
   const searchTerm = `%${query}%`;
   return db.select().from(products)
     .where(and(
@@ -198,7 +205,7 @@ export async function searchProducts(query: string) {
 export async function createProduct(data: InsertProduct) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   const result = await db.insert(products).values(data);
   return result[0].insertId;
 }
@@ -208,7 +215,7 @@ export async function createProduct(data: InsertProduct) {
 export async function getProductPrices(productId: number) {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(productPrices)
     .where(and(eq(productPrices.productId, productId), eq(productPrices.isAvailable, true)))
     .orderBy(asc(productPrices.weightGrams));
@@ -217,14 +224,14 @@ export async function getProductPrices(productId: number) {
 export async function createProductPrice(data: InsertProductPrice) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   await db.insert(productPrices).values(data);
 }
 
 export async function bulkCreateProductPrices(data: InsertProductPrice[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   if (data.length > 0) {
     await db.insert(productPrices).values(data);
   }
@@ -235,7 +242,7 @@ export async function bulkCreateProductPrices(data: InsertProductPrice[]) {
 export async function getAllFlavors() {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(flavors)
     .where(eq(flavors.isActive, true))
     .orderBy(asc(flavors.displayOrder));
@@ -244,7 +251,7 @@ export async function getAllFlavors() {
 export async function getProductFlavors(productId: number) {
   const db = await getDb();
   if (!db) return [];
-  
+
   const result = await db.select({
     flavor: flavors,
     additionalPrice: productFlavors.additionalPrice
@@ -253,14 +260,14 @@ export async function getProductFlavors(productId: number) {
     .innerJoin(flavors, eq(productFlavors.flavorId, flavors.id))
     .where(and(eq(productFlavors.productId, productId), eq(flavors.isActive, true)))
     .orderBy(asc(flavors.displayOrder));
-  
+
   return result;
 }
 
 export async function createFlavor(data: InsertFlavor) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   const result = await db.insert(flavors).values(data);
   return result[0].insertId;
 }
@@ -268,7 +275,7 @@ export async function createFlavor(data: InsertFlavor) {
 export async function linkProductFlavor(data: InsertProductFlavor) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   await db.insert(productFlavors).values(data);
 }
 
@@ -277,25 +284,25 @@ export async function linkProductFlavor(data: InsertProductFlavor) {
 export async function createOrder(data: InsertOrder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
   await db.insert(orders).values(data);
 }
 
 export async function getOrderByNumber(orderNumber: string) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const result = await db.select().from(orders)
     .where(eq(orders.orderNumber, orderNumber))
     .limit(1);
-  
+
   return result[0] || null;
 }
 
 export async function getAllOrders() {
   const db = await getDb();
   if (!db) return [];
-  
+
   return db.select().from(orders)
     .orderBy(desc(orders.createdAt));
 }
@@ -305,34 +312,34 @@ export async function getAllOrders() {
 export async function getProductWithDetails(productId: number) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const product = await getProductById(productId);
   if (!product) return null;
-  
+
   const prices = await getProductPrices(productId);
   const productFlavorsList = await getProductFlavors(productId);
-  
+
   return {
     ...product,
     prices,
-    flavors: productFlavorsList
+    flavors: []
   };
 }
 
 export async function getProductWithDetailsBySlug(slug: string) {
   const db = await getDb();
   if (!db) return null;
-  
+
   const product = await getProductBySlug(slug);
   if (!product) return null;
-  
+
   const prices = await getProductPrices(product.id);
   const productFlavorsList = await getProductFlavors(product.id);
-  
+
   return {
     ...product,
     prices,
-    flavors: productFlavorsList
+    flavors: []
   };
 }
 
@@ -341,24 +348,23 @@ export async function getProductWithDetailsBySlug(slug: string) {
 export async function getFullCatalog() {
   const db = await getDb();
   if (!db) return { categories: [], products: [], flavors: [] };
-  
+
   const allCategories = await getAllCategories();
   const allProducts = await getAllProducts();
   const allFlavors = await getAllFlavors();
-  
+
   // Get prices for all products
   const productsWithPrices = await Promise.all(
     allProducts.map(async (product) => {
       const prices = await getProductPrices(product.id);
-      const productFlavorsList = await getProductFlavors(product.id);
       return {
         ...product,
         prices,
-        flavors: productFlavorsList
+        flavors: []
       };
     })
   );
-  
+
   return {
     categories: allCategories,
     products: productsWithPrices,
