@@ -6,6 +6,28 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
+const KIT_CONFIG = {
+  12: {
+    unitPrice: 69.90,
+    requiredCount: 4,
+    flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella"]
+  },
+  13: {
+    unitPrice: 99.90,
+    requiredCount: 6,
+    flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella", "Sensação", "Laka Oreo com Nutella"]
+  },
+  34: {
+    unitPrice: 199.90,
+    requiredCount: 3,
+    flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella", "Sensação", "Laka Oreo com Nutella"]
+  }
+} as const;
+
+const normalizeName = (name: string) => {
+  return name.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
+
 interface ProductPrice {
   id: number;
   weight: string;
@@ -56,6 +78,33 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
   const [isZoomed, setIsZoomed] = useState(false);
 
   const isOvoDeColher = product?.id === 35;
+  const isKit = product ? [12, 13, 34].includes(product.id) : false;
+  const kitConfig = isKit && product ? KIT_CONFIG[product.id as keyof typeof KIT_CONFIG] : null;
+
+  // State for Custom Kits
+  const [customSelections, setCustomSelections] = useState<Record<string, number>>({});
+
+  const totalSelected = Object.values(customSelections).reduce((a, b) => a + b, 0);
+
+  const handleAdjustFlavor = (flavorName: string, delta: number) => {
+    if (!kitConfig) return;
+
+    setCustomSelections(prev => {
+      const currentQty = prev[flavorName] || 0;
+      const newQty = currentQty + delta;
+
+      if (newQty < 0) return prev;
+      if (delta > 0 && totalSelected >= kitConfig.requiredCount) return prev; // Block exceeding
+
+      const next = { ...prev, [flavorName]: newQty };
+      if (newQty === 0) delete next[flavorName];
+      return next;
+    });
+  };
+
+  const clearSelections = () => {
+    setCustomSelections({});
+  };
 
   // Parse gallery images
   const galleryImages: string[] = product?.galleryImages
@@ -106,6 +155,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
 
       setQuantity(1);
       setCurrentImageIndex(0);
+      setCustomSelections({}); // Reset custom selections
     }
   }, [product, isOvoDeColher]);
 
@@ -135,13 +185,15 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
     : 0;
 
   const handleAddToCart = (action: 'continue' | 'checkout') => {
-    if (!product || !selectedPrice) {
-      toast.error("Selecione um tamanho");
-      return;
+    // 1. Validation for Kits (12, 13, 34)
+    if (isKit && kitConfig) {
+      if (totalSelected !== kitConfig.requiredCount) {
+        toast.error(`Selecione exatamente ${kitConfig.requiredCount} sabores`);
+        return;
+      }
     }
-
-    // Validation for Ovo de Colher
-    if (isOvoDeColher) {
+    // 2. Validation for Ovo de Colher
+    else if (isOvoDeColher) {
       if (!selectedShell) {
         toast.error("Selecione a casca");
         return;
@@ -151,27 +203,68 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
         return;
       }
     }
+    // 3. Validation for Standard Products
+    else if (!product || !selectedPrice) {
+      toast.error("Selecione um tamanho");
+      return;
+    }
 
-    const formattedWeight = formatWeight(selectedPrice.weightGrams);
+    let cartItem: any;
 
-    // Payload construction
-    const cartItem = {
-      productId: product.id,
-      productName: product.name,
-      productSlug: product.slug,
-      imageUrl: product.imageUrl,
-      weight: formattedWeight,
-      weightGrams: selectedPrice.weightGrams,
-      price: parseFloat(selectedPrice.price) + (selectedFlavor ? parseFloat(selectedFlavor.additionalPrice || "0") : 0),
-      quantity,
-      flavor: selectedFlavor?.flavor.name,
-      flavorId: selectedFlavor?.flavor.id,
-      // Specific mapping for Ovo de Colher
-      shell: isOvoDeColher ? selectedShell : (product.category?.slug === 'ovos-trufados' ? selectedShell : undefined),
-      flavors: isOvoDeColher && selectedFlavor ? [selectedFlavor.flavor] : undefined // Pass as array for backend compatibility if needed, though flavor/flavorId is main
-    };
+    if (isKit && kitConfig && product) {
+      // Build Flavor Summary and Variant Key
+      const selectedFlavorEntries = Object.entries(customSelections)
+        .filter(([_, qty]) => qty > 0)
+        .sort((a, b) => normalizeName(a[0]).localeCompare(normalizeName(b[0])));
 
-    addItem(cartItem as any); // Type assertion if Context definition is strict, but fields match requirement
+      // 1. Variant Key: kit|12|ferrero:2|ninho:2
+      const variantKeyParts = selectedFlavorEntries.map(([name, qty]) => `${normalizeName(name)}:${qty}`);
+      const variantKey = `kit|${product.id}|${variantKeyParts.join('|')}`;
+
+      // 2. Flavor Display String: "Sabores (4): Ferrero x2, Ninho x2"
+      const flavorSummary = selectedFlavorEntries
+        .map(([name, qty]) => `${name} x${qty}`)
+        .join(', ');
+
+      const flavorDisplay = `Sabores (${kitConfig.requiredCount}): ${flavorSummary}`;
+
+      // 3. Cart Items
+      cartItem = {
+        productId: product.id,
+        productName: product.name,
+        productSlug: product.slug,
+        imageUrl: product.imageUrl,
+        weight: 'Kit', // Fixed label
+        weightGrams: 0, // Not relevant for kits price-wise
+        price: kitConfig.unitPrice,
+        quantity,
+        flavor: flavorDisplay, // For display compatibility
+        variantKey: variantKey // For strict grouping
+      };
+
+    } else if (product && selectedPrice) {
+      const formattedWeight = formatWeight(selectedPrice.weightGrams);
+
+      cartItem = {
+        productId: product.id,
+        productName: product.name,
+        productSlug: product.slug,
+        imageUrl: product.imageUrl,
+        weight: formattedWeight,
+        weightGrams: selectedPrice.weightGrams,
+        price: parseFloat(selectedPrice.price) + (selectedFlavor ? parseFloat(selectedFlavor.additionalPrice || "0") : 0),
+        quantity,
+        flavor: selectedFlavor?.flavor.name,
+        flavorId: selectedFlavor?.flavor.id,
+        // Specific mapping for Ovo de Colher
+        shell: isOvoDeColher ? selectedShell : (product.category?.slug === 'ovos-trufados' ? selectedShell : undefined),
+        flavors: isOvoDeColher && selectedFlavor ? [selectedFlavor.flavor] : undefined // Pass as array for backend compatibility if needed, though flavor/flavorId is main
+      };
+    }
+
+    if (!cartItem) return;
+
+    addItem(cartItem);
 
     if (action === 'continue') {
       toast.success("Adicionado ao carrinho!");
@@ -311,53 +404,48 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                       )}
                     </div>
 
-                    {/* Size Selection */}
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-3">
-                        Tamanho
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
+                    {/* Size Selection - Hide for Kits */}
+                    {!isKit && (
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-3">
+                          Tamanho
+                        </h3>
                         <div className="flex flex-wrap gap-2">
-                          {uniqueWeights.map((grams) => {
-                            // Find price for this weight and current shell
-                            const priceForOption = product.prices.find(p =>
-                              p.weightGrams === grams &&
-                              (product.category?.slug === 'ovos-trufados' || isOvoDeColher ? (p.shell === selectedShell || !p.shell) : true)
-                            );
+                          <div className="flex flex-wrap gap-2">
+                            {uniqueWeights.map((grams) => {
+                              // Find price for this weight and current shell
+                              const priceForOption = product.prices.find(p =>
+                                p.weightGrams === grams &&
+                                (product.category?.slug === 'ovos-trufados' || isOvoDeColher ? (p.shell === selectedShell || !p.shell) : true)
+                              );
 
-                            // For Ovo de Colher, we typically have one price, but logic holds.
-                            // If no price found specifically for shell (unlikely if shell is "Ao Leite" default in DB or null), show available.
-                            // But for Ovo De Colher we inserted price with NO SHELL specified in DB (shell column null in script?).
-                            // Wait, script inserted `weight: '550g', price: '189.90'`. Shell column typically NULL unless specified.
-                            // Our logic: `(p.shell === selectedShell || !p.shell)`.
-                            // If DB has NULL shell, `!p.shell` is true. So it matches any selected shell. Correct.
+                              if (!priceForOption) return null;
 
-                            if (!priceForOption) return null;
-
-                            return (
-                              <motion.button
-                                key={grams}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setSelectedPrice(priceForOption)}
-                                className={`px-4 py-3 rounded-xl border-2 transition-all ${selectedPrice?.weightGrams === grams
-                                  ? "border-primary bg-primary/10"
-                                  : "border-border hover:border-primary/50"
-                                  }`}
-                              >
-                                <span className="block font-semibold">{formatWeight(grams)}</span>
-                                <span className="text-sm text-primary font-bold">
-                                  R$ {parseFloat(priceForOption.price).toFixed(2).replace(".", ",")}
-                                </span>
-                              </motion.button>
-                            );
-                          })}
+                              return (
+                                <motion.button
+                                  key={grams}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => setSelectedPrice(priceForOption)}
+                                  className={`px-4 py-3 rounded-xl border-2 transition-all ${selectedPrice?.weightGrams === grams
+                                    ? "border-primary bg-primary/10"
+                                    : "border-border hover:border-primary/50"
+                                    }`}
+                                >
+                                  <span className="block font-semibold">{formatWeight(grams)}</span>
+                                  <span className="text-sm text-primary font-bold">
+                                    R$ {parseFloat(priceForOption.price).toFixed(2).replace(".", ",")}
+                                  </span>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Shell Selection - for Ovos Trufados OR Ovo de Colher */}
-                    {(product.category?.slug === 'ovos-trufados' || isOvoDeColher) && (
+                    {/* Shell Selection - for Ovos Trufados OR Ovo de Colher. HIDE for Kits. */}
+                    {!isKit && (product.category?.slug === 'ovos-trufados' || isOvoDeColher) && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
                           Escolha a Casca {isOvoDeColher && <span className="text-red-500">*</span>}
@@ -381,9 +469,78 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                       </div>
                     )}
 
+                    {/* KIT FLAVOR SELECTION (IDs 12, 13, 34) */}
+                    {isKit && kitConfig && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-foreground">
+                            Monte seu Kit
+                            <span className="text-muted-foreground ml-2 text-sm font-normal">
+                              (Escolha {kitConfig.requiredCount} sabores)
+                            </span>
+                          </h3>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-sm font-medium ${totalSelected === kitConfig.requiredCount ? "text-green-600" : "text-amber-600"}`}>
+                              {totalSelected} de {kitConfig.requiredCount}
+                            </span>
+                            {totalSelected > 0 && (
+                              <button
+                                onClick={clearSelections}
+                                className="text-xs text-muted-foreground hover:text-destructive underline"
+                              >
+                                Limpar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {kitConfig.flavors.map((flavorName) => {
+                            const count = customSelections[flavorName] || 0;
+                            const isMaxReached = totalSelected >= kitConfig.requiredCount;
+
+                            return (
+                              <div key={flavorName} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/50">
+                                <span className="font-medium">{flavorName}</span>
+                                <div className="flex items-center gap-3">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full"
+                                    onClick={() => handleAdjustFlavor(flavorName, -1)}
+                                    disabled={count === 0}
+                                  >
+                                    <Minus className="w-4 h-4" />
+                                  </Button>
+                                  <span className={`w-6 text-center font-bold ${count > 0 ? "text-primary" : "text-muted-foreground"}`}>
+                                    {count}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full"
+                                    onClick={() => handleAdjustFlavor(flavorName, 1)}
+                                    disabled={isMaxReached}
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {totalSelected < kitConfig.requiredCount && (
+                          <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded-lg text-center">
+                            Faltam {kitConfig.requiredCount - totalSelected} sabores para completar
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Flavor Selection */}
                     {/* Special Handling for Ovo de Colher (ID 35) - Single Select / Radio */}
-                    {isOvoDeColher && product.flavors.length > 0 && (
+                    {!isKit && isOvoDeColher && product.flavors.length > 0 && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
                           Sabor do Recheio <span className="text-red-500">*</span>
@@ -410,7 +567,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                     )}
 
                     {/* Normal Flavor Selection for other products */}
-                    {!isOvoDeColher && product.flavors.length > 0 && !product.slug.includes('mini-ovos') && (
+                    {!isKit && !isOvoDeColher && product.flavors.length > 0 && !product.slug.includes('mini-ovos') && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
                           Sabor do Recheio
@@ -439,8 +596,10 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                       </div>
                     )}
 
-                    {/* Sabores Inclusos - for Mini Ovos kits */}
-                    {product.flavors.length > 0 && product.slug.includes('mini-ovos') && (
+                    {/* Sabores Inclusos - for Mini Ovos kits (that are NOT 12,13,34 if any exist, or backward compat) */}
+                    {/* The new kits IDs 12, 13, 34 have 'mini-ovos' in slug usually but we use Custom Selection now. */}
+                    {/* So hide this block if isKit. */}
+                    {!isKit && product.flavors.length > 0 && product.slug.includes('mini-ovos') && (
                       <div>
                         <h3 className="font-semibold text-[var(--gold)] mb-3 uppercase text-sm tracking-wide">
                           Sabores Inclusos
@@ -516,7 +675,11 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                       <div>
                         <span className="text-sm text-muted-foreground">Total</span>
                         <p className="text-2xl font-bold text-primary">
-                          R$ {totalPrice.toFixed(2).replace(".", ",")}
+                          {isKit && kitConfig ? (
+                            `R$ ${(kitConfig.unitPrice * quantity).toFixed(2).replace(".", ",")}`
+                          ) : (
+                            `R$ ${totalPrice.toFixed(2).replace(".", ",")}`
+                          )}
                         </p>
                       </div>
                       <div className="flex gap-2 flex-1 max-w-md">
@@ -525,7 +688,10 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                           size="lg"
                           className="flex-1 rounded-xl border-primary text-primary hover:bg-primary/10"
                           onClick={() => handleAddToCart('continue')}
-                          disabled={!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor))}
+                          disabled={
+                            isKit ? totalSelected !== kitConfig?.requiredCount :
+                              (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
+                          }
                         >
                           Adicionar e continuar
                         </Button>
@@ -533,7 +699,10 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                           size="lg"
                           className="flex-1 rounded-xl gap-2 font-bold"
                           onClick={() => handleAddToCart('checkout')}
-                          disabled={!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor))}
+                          disabled={
+                            isKit ? totalSelected !== kitConfig?.requiredCount :
+                              (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
+                          }
                         >
                           <ShoppingCart className="w-5 h-5" />
                           Finalizar Pedido
@@ -546,7 +715,8 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
             </div>
           </motion.div>
         </>
-      )}
-    </AnimatePresence>
+      )
+      }
+    </AnimatePresence >
   );
 }

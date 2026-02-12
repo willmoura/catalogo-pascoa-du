@@ -12,13 +12,14 @@ export interface CartItem {
   flavor?: string;
   flavorId?: number;
   shell?: 'Ao Leite' | 'Meio a Meio' | 'Meio Amargo' | 'Branco';
+  variantKey?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (productId: number, weight: string, flavorId?: number, shell?: string) => void;
-  updateQuantity: (productId: number, weight: string, quantity: number, flavorId?: number, shell?: string) => void;
+  removeItem: (productId: number, weight: string, flavorId?: number, shell?: string, variantKey?: string) => void;
+  updateQuantity: (productId: number, weight: string, quantity: number, flavorId?: number, shell?: string, variantKey?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -59,22 +60,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       // Find existing item
       const existingIndex = prev.findIndex((item) => {
+        // STRICT GROUPING FOR KITS (12, 13, 34)
+        if ([12, 13, 34].includes(newItem.productId)) {
+          return item.productId === newItem.productId && item.variantKey === newItem.variantKey;
+        }
+
+        // STANDARD GROUPING FOR OTHER PRODUCTS (Exact existing logic)
         const isSameProduct = item.productId === newItem.productId &&
           item.weight === newItem.weight &&
           item.flavorId === newItem.flavorId;
 
-        // For Ovos Trufados (we check if shell is present in logical comparison)
-        // If newItem has shell, comparison must match shell.
-        // If newItem has NO shell, comparison must NOT have shell (or item.shell is undefined)
         if (newItem.shell) {
           return isSameProduct && item.shell === newItem.shell;
         } else {
-          // New item has no shell, match only if existing item has no shell
-          // BUT: Plan says "If product is NOT Ovos Trufados: Compare ... (ignore shell even if passed)"
-          // However, implementation of addItem doesn't know category.
-          // But `newItem.shell` is only passed from front-end if category is Ovos Trufados.
-          // So if `newItem.shell` matches `item.shell` (both undefined), it matches.
-          // If `item.shell` is undefined and `newItem.shell` is undefined, they match.
           return isSameProduct && !item.shell;
         }
       });
@@ -89,16 +87,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const removeItem = (productId: number, weight: string, flavorId?: number, shell?: string) => {
+  const removeItem = (productId: number, weight: string, flavorId?: number, shell?: string, variantKey?: string) => {
     setItems((prev) =>
       prev.filter(
-        (item) =>
-          !(
+        (item) => {
+          if (variantKey) {
+            return !(item.productId === productId && item.variantKey === variantKey);
+          }
+          return !(
             item.productId === productId &&
             item.weight === weight &&
             item.flavorId === flavorId &&
             item.shell === shell
-          )
+          );
+        }
       )
     );
   };
@@ -108,22 +110,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     weight: string,
     quantity: number,
     flavorId?: number,
-    shell?: string
+    shell?: string,
+    variantKey?: string
   ) => {
     if (quantity <= 0) {
-      removeItem(productId, weight, flavorId, shell);
+      removeItem(productId, weight, flavorId, shell, variantKey);
       return;
     }
 
     setItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId &&
+      prev.map((item) => {
+        if (variantKey) {
+          return item.productId === productId && item.variantKey === variantKey
+            ? { ...item, quantity }
+            : item;
+        }
+        return item.productId === productId &&
           item.weight === weight &&
           item.flavorId === flavorId &&
           item.shell === shell
           ? { ...item, quantity }
-          : item
-      )
+          : item;
+      })
     );
   };
 

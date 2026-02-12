@@ -273,11 +273,11 @@ export default function CartDrawer() {
                             <p className="text-primary font-bold mt-1">R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}</p>
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center border border-border rounded-lg overflow-hidden">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.productId, item.weight, item.quantity - 1, item.flavorId, item.shell)}><Minus className="w-3 h-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.productId, item.weight, item.quantity - 1, item.flavorId, item.shell, item.variantKey)}><Minus className="w-3 h-3" /></Button>
                                 <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.productId, item.weight, item.quantity + 1, item.flavorId, item.shell)}><Plus className="w-3 h-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.productId, item.weight, item.quantity + 1, item.flavorId, item.shell, item.variantKey)}><Plus className="w-3 h-3" /></Button>
                               </div>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.productId, item.weight, item.flavorId, item.shell)}><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.productId, item.weight, item.flavorId, item.shell, item.variantKey)}><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </div>
                         </motion.div>
