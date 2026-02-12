@@ -23,7 +23,7 @@ export default function Home() {
   const { data: catalog, isLoading } = trpc.catalog.full.useQuery();
 
   // Fetch selected product details
-  const { data: selectedProduct } = trpc.products.getBySlug.useQuery(
+  const { data: selectedProduct, isLoading: isLoadingProduct } = trpc.products.getBySlug.useQuery(
     { slug: selectedProductSlug || "" },
     { enabled: !!selectedProductSlug }
   );
@@ -169,6 +169,7 @@ export default function Home() {
         product={selectedProduct || null}
         isOpen={!!selectedProductSlug}
         onClose={() => setSelectedProductSlug(null)}
+        isLoading={isLoadingProduct}
       />
 
       {/* Cart Drawer */}

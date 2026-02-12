@@ -20,7 +20,7 @@ export async function getDb() {
     console.log("[Database] Initializing connection pool...");
     try {
       const pool = mysql.createPool(process.env.DATABASE_URL);
-      _db = drizzle(pool);
+      _db = drizzle(pool as any);
       console.log("[Database] Connection pool initialized successfully.");
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
@@ -127,11 +127,23 @@ export async function getCategoryBySlug(slug: string) {
   return result[0] || null;
 }
 
+
 export async function createCategory(data: InsertCategory) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   await db.insert(categories).values(data);
+}
+
+export async function getCategoryById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(categories)
+    .where(eq(categories.id, id))
+    .limit(1);
+
+  return result[0] || null;
 }
 
 // ============ PRODUCT FUNCTIONS ============
@@ -318,11 +330,13 @@ export async function getProductWithDetails(productId: number) {
 
   const prices = await getProductPrices(productId);
   const productFlavorsList = await getProductFlavors(productId);
+  const category = await getCategoryById(product.categoryId);
 
   return {
     ...product,
+    category,
     prices,
-    flavors: []
+    flavors: productFlavorsList
   };
 }
 
@@ -335,11 +349,13 @@ export async function getProductWithDetailsBySlug(slug: string) {
 
   const prices = await getProductPrices(product.id);
   const productFlavorsList = await getProductFlavors(product.id);
+  const category = await getCategoryById(product.categoryId);
 
   return {
     ...product,
+    category,
     prices,
-    flavors: []
+    flavors: productFlavorsList
   };
 }
 
@@ -357,8 +373,10 @@ export async function getFullCatalog() {
   const productsWithPrices = await Promise.all(
     allProducts.map(async (product) => {
       const prices = await getProductPrices(product.id);
+      const category = allCategories.find(c => c.id === product.categoryId);
       return {
         ...product,
+        category,
         prices,
         flavors: []
       };

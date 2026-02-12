@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export interface CartItem {
   productId: number;
@@ -11,13 +11,14 @@ export interface CartItem {
   quantity: number;
   flavor?: string;
   flavorId?: number;
+  shell?: 'Ao Leite' | 'Meio a Meio' | 'Meio Amargo' | 'Branco';
 }
 
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (productId: number, weight: string, flavorId?: number) => void;
-  updateQuantity: (productId: number, weight: string, quantity: number, flavorId?: number) => void;
+  removeItem: (productId: number, weight: string, flavorId?: number, shell?: string) => void;
+  updateQuantity: (productId: number, weight: string, quantity: number, flavorId?: number, shell?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -25,7 +26,8 @@ interface CartContextType {
   setIsOpen: (open: boolean) => void;
   checkoutStep: "review" | "hub";
   setCheckoutStep: (step: "review" | "hub") => void;
-  openCheckout: () => void;
+  openCartReview: () => void;
+  openCheckoutHub: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -39,7 +41,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return saved ? JSON.parse(saved) : [];
     }
     return [];
-    return [];
   });
   const [isOpen, setIsOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<"review" | "hub">("review");
@@ -50,13 +51,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addItem = (newItem: CartItem) => {
+    // Normalize shell string (trim)
+    if (newItem.shell) {
+      newItem.shell = newItem.shell.trim() as any;
+    }
+
     setItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) =>
-          item.productId === newItem.productId &&
+      // Find existing item
+      const existingIndex = prev.findIndex((item) => {
+        const isSameProduct = item.productId === newItem.productId &&
           item.weight === newItem.weight &&
-          item.flavorId === newItem.flavorId
-      );
+          item.flavorId === newItem.flavorId;
+
+        // For Ovos Trufados (we check if shell is present in logical comparison)
+        // If newItem has shell, comparison must match shell.
+        // If newItem has NO shell, comparison must NOT have shell (or item.shell is undefined)
+        if (newItem.shell) {
+          return isSameProduct && item.shell === newItem.shell;
+        } else {
+          // New item has no shell, match only if existing item has no shell
+          // BUT: Plan says "If product is NOT Ovos Trufados: Compare ... (ignore shell even if passed)"
+          // However, implementation of addItem doesn't know category.
+          // But `newItem.shell` is only passed from front-end if category is Ovos Trufados.
+          // So if `newItem.shell` matches `item.shell` (both undefined), it matches.
+          // If `item.shell` is undefined and `newItem.shell` is undefined, they match.
+          return isSameProduct && !item.shell;
+        }
+      });
 
       if (existingIndex >= 0) {
         const updated = [...prev];
@@ -68,14 +89,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const removeItem = (productId: number, weight: string, flavorId?: number) => {
+  const removeItem = (productId: number, weight: string, flavorId?: number, shell?: string) => {
     setItems((prev) =>
       prev.filter(
         (item) =>
           !(
             item.productId === productId &&
             item.weight === weight &&
-            item.flavorId === flavorId
+            item.flavorId === flavorId &&
+            item.shell === shell
           )
       )
     );
@@ -85,10 +107,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     productId: number,
     weight: string,
     quantity: number,
-    flavorId?: number
+    flavorId?: number,
+    shell?: string
   ) => {
     if (quantity <= 0) {
-      removeItem(productId, weight, flavorId);
+      removeItem(productId, weight, flavorId, shell);
       return;
     }
 
@@ -96,7 +119,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       prev.map((item) =>
         item.productId === productId &&
           item.weight === weight &&
-          item.flavorId === flavorId
+          item.flavorId === flavorId &&
+          item.shell === shell
           ? { ...item, quantity }
           : item
       )
@@ -108,9 +132,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCheckoutStep("review");
   };
 
-  const openCheckout = () => {
-    setCheckoutStep("hub");
+  const openCartReview = () => {
+    setCheckoutStep("review");
     setIsOpen(true);
+  };
+
+  const openCheckoutHub = () => {
+    if (checkoutStep === "review") {
+      setCheckoutStep("hub");
+      setIsOpen(true);
+    }
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -133,7 +164,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsOpen,
         checkoutStep,
         setCheckoutStep,
-        openCheckout,
+        openCartReview,
+        openCheckoutHub,
       }}
     >
       {children}

@@ -65,6 +65,7 @@ export const productPrices = mysqlTable("product_prices", {
   id: int("id").autoincrement().primaryKey(),
   productId: int("productId").notNull(),
   weight: varchar("weight", { length: 50 }).notNull(), // e.g., "400g", "600g", "1kg"
+  shell: varchar("shell", { length: 50 }), // e.g., "Ao Leite", "Branco"
   weightGrams: int("weightGrams").notNull(), // numeric weight for sorting
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   compareAtPrice: decimal("compareAtPrice", { precision: 10, scale: 2 }), // original price for discounts

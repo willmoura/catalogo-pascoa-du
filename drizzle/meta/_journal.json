@@ -15,6 +15,13 @@
       "when": 1770142092602,
       "tag": "0001_bizarre_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1770810945021,
+      "tag": "0002_amused_random",
+      "breakpoints": true
     }
   ]
 }
