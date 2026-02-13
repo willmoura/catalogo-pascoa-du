@@ -446,10 +446,11 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                                 aria-label={`Ver imagem ${idx + 1}`}
                                 aria-current={idx === currentImageIndex}
                               >
-                                <img
-                                  src={img}
+                                <ResponsiveImage
+                                  imageId={img}
                                   alt={`Miniatura ${idx + 1}`}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full bg-transparent"
+                                  imageClassName="w-full h-full object-cover"
                                 />
                               </button>
                             ))}

@@ -1,0 +1,304 @@
+{
+  "products": [
+    {
+      "id": 4,
+      "name": "Ovo Trufado Maracujá",
+      "imageUrl": "/products/maracuja.png"
+    },
+    {
+      "id": 6,
+      "name": "Ovo ao Leite Clássico",
+      "imageUrl": "/products/chocolate_ao_leite.png"
+    },
+    {
+      "id": 7,
+      "name": "Ovo ao Leite com Castanhas",
+      "imageUrl": "/products/ovo_castanhas.png"
+    },
+    {
+      "id": 8,
+      "name": "Ovo Meio a Meio",
+      "imageUrl": "/products/ovo_meio_meio.png"
+    },
+    {
+      "id": 10,
+      "name": "Ovo Meio Amargo",
+      "imageUrl": "10d689cd-c5cd-4f5f-d02b-3a8721cc6f00"
+    },
+    {
+      "id": 12,
+      "name": "Mini Kit com 4 Ovo de Colher",
+      "imageUrl": "/products/kit4.png"
+    },
+    {
+      "id": 13,
+      "name": "Mini Kit com 6 Ovo de Colher",
+      "imageUrl": "/products/kit6.png"
+    },
+    {
+      "id": 17,
+      "name": "Ovo de Chocolate Branco",
+      "imageUrl": "bed99809-f639-4145-098d-cc06bc233b00"
+    },
+    {
+      "id": 18,
+      "name": "Ovo Trufado Alpino",
+      "imageUrl": "/products/alpino.png"
+    },
+    {
+      "id": 19,
+      "name": "Ovo Trufado Charge",
+      "imageUrl": "/products/charge.png"
+    },
+    {
+      "id": 20,
+      "name": "Ovo Trufado Doce de Leite",
+      "imageUrl": "/products/doce_de_leite.png"
+    },
+    {
+      "id": 21,
+      "name": "Ovo Trufado Ferrero Rocher",
+      "imageUrl": "/products/ferrero_rocher.png"
+    },
+    {
+      "id": 22,
+      "name": "Ovo Trufado Franuí",
+      "imageUrl": "/products/franui.png"
+    },
+    {
+      "id": 23,
+      "name": "Ovo Trufado Kinder Bueno",
+      "imageUrl": "/products/kinder_bueno.png"
+    },
+    {
+      "id": 24,
+      "name": "Ovo Trufado Laka Oreo com Nutella",
+      "imageUrl": "/products/laka_oreo_nutella.png"
+    },
+    {
+      "id": 25,
+      "name": "Ovo Trufado Ninho com Nutella",
+      "imageUrl": "/products/ninho_nutella.png"
+    },
+    {
+      "id": 26,
+      "name": "Ovo Trufado Ovomaltine",
+      "imageUrl": "/products/ovomaltine.png"
+    },
+    {
+      "id": 27,
+      "name": "Ovo Trufado Pistache",
+      "imageUrl": "/products/pistache.png"
+    },
+    {
+      "id": 28,
+      "name": "Ovo Trufado Prestígio",
+      "imageUrl": "/products/prestigio.png"
+    },
+    {
+      "id": 29,
+      "name": "Ovo Trufado Strogonoff de Nozes",
+      "imageUrl": "/products/strogonoff_nozes.png"
+    },
+    {
+      "id": 30,
+      "name": "Ovo Trufado Sensação",
+      "imageUrl": "/products/sensacao.png"
+    },
+    {
+      "id": 31,
+      "name": "Ovo Trufado Maracujá com Nutella",
+      "imageUrl": "/products/maracuja_nutella.png"
+    },
+    {
+      "id": 32,
+      "name": "Ovo Trufado Ninho com Morango",
+      "imageUrl": "/products/ninho_morango.png"
+    },
+    {
+      "id": 33,
+      "name": "Kinder Ovo",
+      "imageUrl": "/products/kinder_bueno.png"
+    },
+    {
+      "id": 34,
+      "name": "Kit com 3 Ovos de Colher",
+      "imageUrl": "/products/kit3.png"
+    },
+    {
+      "id": 35,
+      "name": "Ovo de Colher",
+      "imageUrl": "f0dd6a6e-f547-4011-a78d-a295ba9c9100"
+    }
+  ],
+  "cfImages": [
+    {
+      "id": "310af37a-0ca9-4148-58de-c7a3a8b34200",
+      "filename": "maracuja_ref.png"
+    },
+    {
+      "id": "e9178215-35c3-431b-19a8-857ddb2de200",
+      "filename": "alpino_ref.png"
+    },
+    {
+      "id": "eb9de2d8-40ee-4db3-8f0a-7baeb4c2e400",
+      "filename": "doce de leite_ref.png"
+    },
+    {
+      "id": "075264fd-c315-4c50-6e6f-046faa283e00",
+      "filename": "ferrero rocher_ref.png"
+    },
+    {
+      "id": "03fd951a-cde7-4f55-a113-1bd7968c1d00",
+      "filename": "kinder_bueno.png"
+    },
+    {
+      "id": "c2f218fd-96e8-44c6-b7ad-30b5a8f9be00",
+      "filename": "maracuja.png"
+    },
+    {
+      "id": "54c971e6-a6e9-43ad-9b07-6669189e1f00",
+      "filename": "ovomaltine.png"
+    },
+    {
+      "id": "b27a892c-e47a-41c0-90d5-6dae5a838c00",
+      "filename": "franui.png"
+    },
+    {
+      "id": "3e3c47f9-07ef-4de1-0bc2-4d10ff40f100",
+      "filename": "ninho_nutella_ref.png"
+    },
+    {
+      "id": "d1794c26-930c-4ea0-3103-a17c15493d00",
+      "filename": "ovomaltine_ref.png"
+    },
+    {
+      "id": "10d689cd-c5cd-4f5f-d02b-3a8721cc6f00",
+      "filename": "chocolate_meio_amargo.png"
+    },
+    {
+      "id": "a2b3b80b-ef93-45d1-d987-1337823cbf00",
+      "filename": "ferrero_rocher.png"
+    },
+    {
+      "id": "ef917b20-30f8-4f01-63b5-c1821c512800",
+      "filename": "ref_sensacao.png"
+    },
+    {
+      "id": "38a96ebc-d17a-410b-7e14-ea011c2d6e00",
+      "filename": "alpino.png"
+    },
+    {
+      "id": "efebf010-9d84-4dc3-f24d-0643b1a76300",
+      "filename": "sensacao.png"
+    },
+    {
+      "id": "9a893700-cd40-408f-1100-d8807f33aa00",
+      "filename": "charge.png"
+    },
+    {
+      "id": "5c6e6ba4-a5b0-4148-a5ca-a29594572c00",
+      "filename": "ninho_nutella.png"
+    },
+    {
+      "id": "c6306fac-d6e1-44b6-007f-8e7d0c749400",
+      "filename": "doce_de_leite.png"
+    },
+    {
+      "id": "2229b597-67c1-4e10-5983-42b3a1b1ea00",
+      "filename": "laka_oreo_nutella.png"
+    },
+    {
+      "id": "54520996-a8d6-4f94-b5e4-f3befdd3ca00",
+      "filename": "ninho_morango.png"
+    },
+    {
+      "id": "f9a828bb-11ba-4872-9579-a965536f5300",
+      "filename": "ref_pistache.png"
+    },
+    {
+      "id": "bed99809-f639-4145-098d-cc06bc233b00",
+      "filename": "chocolate_branco.png"
+    },
+    {
+      "id": "d3907590-c127-46d8-f760-8069f5129c00",
+      "filename": "ref_ninho_morango.png"
+    },
+    {
+      "id": "a8dc7b16-2054-477a-c169-693d63030500",
+      "filename": "strogonoff_nozes.png"
+    },
+    {
+      "id": "76d63b13-5df8-48b8-1369-aa3c962f1100",
+      "filename": "ovo_meio_meio.png"
+    },
+    {
+      "id": "30aaf330-2449-42a3-b677-7034b090de00",
+      "filename": "prestigio.png"
+    },
+    {
+      "id": "f78ea351-e358-4191-a8c1-3ae42caf0d00",
+      "filename": "chocolate_ao_leite.png"
+    },
+    {
+      "id": "9342f2ba-58c0-4585-b309-78d1ec4f6e00",
+      "filename": "maracuja_nutella.png"
+    },
+    {
+      "id": "5d25eb25-11db-42d0-9a55-bb23f8d43d00",
+      "filename": "pistache.png"
+    },
+    {
+      "id": "54259bbe-3877-404d-45be-5b8e7708ff00",
+      "filename": "ref_strogonoff_nozes.png"
+    },
+    {
+      "id": "ba88a3eb-1ee5-4286-c069-8cb64fd6b400",
+      "filename": "ref_maracuja_nutella.png"
+    },
+    {
+      "id": "191705c9-3f81-47b7-93e7-348a70ee4300",
+      "filename": "kit6.png"
+    },
+    {
+      "id": "04c0dc2d-617c-45c8-86bf-37dd31b36600",
+      "filename": "charge_ref.png"
+    },
+    {
+      "id": "8b80c119-eda1-40e9-49b2-8b8848765800",
+      "filename": "kit4.png"
+    },
+    {
+      "id": "f57da7d6-e941-4de6-ed9b-3792c1c48e00",
+      "filename": "kit3.png"
+    },
+    {
+      "id": "beda2332-b1b7-4a86-ba3d-efff4b0feb00",
+      "filename": "ref_ovo_meio_meio.png"
+    },
+    {
+      "id": "f0dd6a6e-f547-4011-a78d-a295ba9c9100",
+      "filename": "ovo_colher.png"
+    },
+    {
+      "id": "a699294c-5151-47d2-ddc9-49e1bcc21100",
+      "filename": "ref_chocolate_ao_leite.png"
+    },
+    {
+      "id": "686aca2d-5c8c-40b8-f8af-87ba816a7200",
+      "filename": "ref_chocolate_branco.png"
+    },
+    {
+      "id": "5165c8db-4cb0-4d52-7953-cda01ea7db00",
+      "filename": "ref_meio amargo.png"
+    },
+    {
+      "id": "ef63c291-e982-4cda-9c94-429823aa5700",
+      "filename": "ref_ovo_castanhas.png"
+    },
+    {
+      "id": "f7a802f1-92e1-492d-199e-bc7097524100",
+      "filename": "ovo_castanhas.png"
+    }
+  ]
+}
