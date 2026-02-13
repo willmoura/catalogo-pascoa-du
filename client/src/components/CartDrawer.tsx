@@ -248,7 +248,7 @@ export default function CartDrawer() {
                     <div className="space-y-4">
                       {items.map((item) => (
                         <motion.div
-                          key={`${item.productId}-${item.weight}-${item.flavorId}-${item.shell || ''}`}
+                          key={`${item.productId}-${item.weight}-${item.flavorId}-${item.shell || ''}-${item.variantKey || ''}`}
                           layout
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}

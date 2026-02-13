@@ -143,10 +143,6 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       setSelectedPrice(defaultPrice || null);
 
       // Reset flavor 
-      // For ovo de colher, start null to force selection. For others, maybe default?
-      // Keeping consistent: reset to null or first available if mandated?
-      // Original logic: setSelectedFlavor(product.flavors.length > 0 ? product.flavors[0] : null);
-      // For ID 35 we want force selection, so null.
       if (isOvoDeColher) {
         setSelectedFlavor(null);
       } else {
@@ -158,6 +154,23 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       setCustomSelections({}); // Reset custom selections
     }
   }, [product, isOvoDeColher]);
+
+  // Keyboard Navigation
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        prevImage();
+      } else if (e.key === "ArrowRight") {
+        nextImage();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, currentImageIndex, allImages.length]); // Dependencies for closure stability handled by functional updates in prev/nextImage, but good practice to include
+
 
   // Update price when shell changes (keeping same weight if possible)
   useEffect(() => {
@@ -176,6 +189,17 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       }
     }
   }, [selectedShell, product, selectedPrice]);
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -311,80 +335,122 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-background rounded-t-3xl overflow-hidden md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full md:rounded-2xl md:max-h-[85vh]"
+            className="fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl overflow-hidden md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full md:rounded-2xl max-h-[90dvh] md:max-h-[85vh] flex flex-col"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md hover:bg-background transition-colors"
+              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md hover:bg-background transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="overflow-y-auto max-h-[90vh] md:max-h-[85vh]">
-              {(isLoading || !product) ? (
-                <div className="h-[50vh] flex flex-col items-center justify-center space-y-4">
-                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  <p className="text-muted-foreground">Carregando detalhes...</p>
-                </div>
-              ) : (
-                <>
+            {(isLoading || !product) ? (
+              <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <p className="text-muted-foreground">Carregando detalhes...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y">
                   {/* Image Gallery */}
-                  <div className="relative w-full bg-secondary/30 flex items-center justify-center p-4">
+                  {/* Image Gallery */}
+                  <div className="relative w-full bg-secondary/30 flex flex-col items-center justify-center p-4">
                     {allImages.length > 0 ? (
                       <>
-                        <motion.img
-                          key={currentImageIndex}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          src={allImages[currentImageIndex]}
-                          alt={product.name}
-                          className={`max-h-[50vh] md:max-h-[60vh] w-auto object-contain cursor-zoom-in ${isZoomed ? "scale-150" : ""}`}
-                          onClick={() => setIsZoomed(!isZoomed)}
-                        />
+                        <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
+                          <AnimatePresence initial={false} mode="wait">
+                            <motion.img
+                              key={currentImageIndex}
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              transition={{ duration: 0.3 }}
+                              src={allImages[currentImageIndex]}
+                              alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
+                              className={`max-h-full w-auto object-contain cursor-zoom-in ${isZoomed ? "scale-150" : ""}`}
+                              onClick={() => setIsZoomed(!isZoomed)}
+                              onTouchStart={(e) => {
+                                const touch = e.targetTouches[0];
+                                e.currentTarget.dataset.touchStartX = touch.clientX.toString();
+                                e.currentTarget.dataset.touchStartY = touch.clientY.toString();
+                              }}
+                              onTouchEnd={(e) => {
+                                const touchStart = parseFloat(e.currentTarget.dataset.touchStartX || "0");
+                                const touchStartY = parseFloat(e.currentTarget.dataset.touchStartY || "0");
+                                const touchEnd = e.changedTouches[0].clientX;
+                                const touchEndY = e.changedTouches[0].clientY;
 
-                        {/* Navigation Arrows */}
-                        {allImages.length > 1 && (
-                          <>
-                            <button
-                              onClick={prevImage}
-                              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md"
-                            >
-                              <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={nextImage}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md"
-                            >
-                              <ChevronRight className="w-5 h-5" />
-                            </button>
+                                const diffX = touchStart - touchEnd;
+                                const diffY = Math.abs(touchStartY - touchEndY);
 
-                            {/* Dots */}
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                              {allImages.map((_, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => setCurrentImageIndex(idx)}
-                                  className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex
-                                    ? "bg-primary w-4"
-                                    : "bg-background/60"
-                                    }`}
-                                />
-                              ))}
-                            </div>
-                          </>
-                        )}
+                                // Only trigger if horizontal swipe is significantly larger than vertical (scrolling)
+                                if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
+                                  if (diffX > 0) {
+                                    nextImage();
+                                  } else {
+                                    prevImage();
+                                  }
+                                }
+                              }}
+                            />
+                          </AnimatePresence>
 
-                        {/* Zoom indicator */}
-                        <div className="absolute bottom-4 right-4">
-                          <Badge variant="secondary" className="gap-1">
-                            <ZoomIn className="w-3 h-3" />
-                            Toque para zoom
-                          </Badge>
+                          {/* Navigation Arrows */}
+                          {allImages.length > 1 && (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md hover:bg-background transition-colors z-10"
+                                aria-label="Imagem anterior"
+                              >
+                                <ChevronLeft className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-md hover:bg-background transition-colors z-10"
+                                aria-label="Próxima imagem"
+                              >
+                                <ChevronRight className="w-5 h-5" />
+                              </button>
+                            </>
+                          )}
+
+                          {/* Zoom indicator */}
+                          <div className="absolute bottom-4 right-4 z-10 pointer-events-none">
+                            <Badge variant="secondary" className="gap-1 shadow-sm">
+                              <ZoomIn className="w-3 h-3" />
+                              Toque para zoom
+                            </Badge>
+                          </div>
                         </div>
+
+                        {/* Thumbnails */}
+                        {allImages.length > 1 && (
+                          <div className="flex gap-2 mt-4 overflow-x-auto w-full justify-center px-4 py-2 scrollbar-none">
+                            {allImages.map((img, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => setCurrentImageIndex(idx)}
+                                className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${idx === currentImageIndex
+                                  ? "border-primary ring-2 ring-primary/20"
+                                  : "border-transparent opacity-60 hover:opacity-100"
+                                  }`}
+                                aria-label={`Ver imagem ${idx + 1}`}
+                                aria-current={idx === currentImageIndex}
+                              >
+                                <img
+                                  src={img}
+                                  alt={`Miniatura ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-[50vh] md:h-[60vh] flex items-center justify-center">
                         <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[var(--chocolate)] to-[var(--gold)] opacity-50" />
                       </div>
                     )}
@@ -669,50 +735,50 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                     </div>
                   </div>
 
-                  {/* Footer */}
-                  <div className="sticky bottom-0 p-4 bg-background border-t border-border safe-bottom">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Total</span>
-                        <p className="text-2xl font-bold text-primary">
-                          {isKit && kitConfig ? (
-                            `R$ ${(kitConfig.unitPrice * quantity).toFixed(2).replace(".", ",")}`
-                          ) : (
-                            `R$ ${totalPrice.toFixed(2).replace(".", ",")}`
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 flex-1 max-w-md">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="flex-1 rounded-xl border-primary text-primary hover:bg-primary/10"
-                          onClick={() => handleAddToCart('continue')}
-                          disabled={
-                            isKit ? totalSelected !== kitConfig?.requiredCount :
-                              (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
-                          }
-                        >
-                          Adicionar e continuar
-                        </Button>
-                        <Button
-                          size="lg"
-                          className="flex-1 rounded-xl gap-2 font-bold"
-                          onClick={() => handleAddToCart('checkout')}
-                          disabled={
-                            isKit ? totalSelected !== kitConfig?.requiredCount :
-                              (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
-                          }
-                        >
-                          <ShoppingCart className="w-5 h-5" />
-                          Finalizar Pedido
-                        </Button>
-                      </div>
+                </div>
+                {/* Footer */}
+                <div className="p-4 bg-background border-t border-border safe-bottom z-20">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center justify-between w-full sm:flex-[1] sm:justify-start">
+                      <span className="text-sm text-muted-foreground sm:mr-2">Total</span>
+                      <p className="text-2xl font-bold text-primary inline-block">
+                        {isKit && kitConfig ? (
+                          `R$ ${(kitConfig.unitPrice * quantity).toFixed(2).replace(".", ",")}`
+                        ) : (
+                          `R$ ${totalPrice.toFixed(2).replace(".", ",")}`
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 w-full sm:flex-[2]">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="flex-1 w-full rounded-xl border-primary text-primary hover:bg-primary/10 h-12 whitespace-nowrap"
+                        onClick={() => handleAddToCart('continue')}
+                        disabled={
+                          isKit ? totalSelected !== kitConfig?.requiredCount :
+                            (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
+                        }
+                      >
+                        Adicionar
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="flex-1 w-full rounded-xl gap-2 font-bold h-12 whitespace-nowrap"
+                        onClick={() => handleAddToCart('checkout')}
+                        disabled={
+                          isKit ? totalSelected !== kitConfig?.requiredCount :
+                            (!selectedPrice || (isOvoDeColher && (!selectedShell || !selectedFlavor)))
+                        }
+                      >
+                        <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+                        Finalizar
+                      </Button>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </motion.div>
         </>
       )

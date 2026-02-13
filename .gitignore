@@ -122,6 +122,8 @@ scripts/delete_*.ts
 scripts/recreate_*.ts
 scripts/process_images.ts
 scripts/update_image_urls.ts
+update_gallery_images_root.ts
+scripts/check_simple.cjs
 *.test.ts
 *.spec.ts
 test_*.ts
