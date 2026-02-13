@@ -126,3 +126,34 @@ export const orders = mysqlTable("orders", {
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
+
+/**
+ * Media entities (Cloudflare Images)
+ */
+export const media = mysqlTable("media", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: mysqlEnum("provider", ["cloudflare"]).default("cloudflare").notNull(),
+  providerImageId: varchar("providerImageId", { length: 255 }).notNull(), // Cloudflare UUID
+  filename: varchar("filename", { length: 255 }), // Original filename
+  status: mysqlEnum("status", ["pending", "active", "orphaned"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  //   createdBy: int("createdBy"), // Optional: user ID
+});
+
+export type Media = typeof media.$inferSelect;
+export type InsertMedia = typeof media.$inferInsert;
+
+/**
+ * Product Media relationship (Gallery)
+ */
+export const productMedia = mysqlTable("product_media", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  mediaId: int("mediaId").notNull(),
+  role: mysqlEnum("role", ["cover", "gallery", "detail"]).default("gallery").notNull(),
+  displayOrder: int("displayOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProductMedia = typeof productMedia.$inferSelect;
+export type InsertProductMedia = typeof productMedia.$inferInsert;

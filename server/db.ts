@@ -7,7 +7,9 @@ import {
   productPrices, InsertProductPrice, ProductPrice,
   flavors, InsertFlavor, Flavor,
   productFlavors, InsertProductFlavor,
-  orders, InsertOrder, Order
+  orders, InsertOrder, Order,
+  media, InsertMedia, Media,
+  productMedia, InsertProductMedia, ProductMedia
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -361,6 +363,8 @@ export async function getProductWithDetailsBySlug(slug: string) {
 
 // ============ CATALOG DATA ============
 
+// ============ CATALOG DATA ============
+
 export async function getFullCatalog() {
   const db = await getDb();
   if (!db) return { categories: [], products: [], flavors: [] };
@@ -388,4 +392,61 @@ export async function getFullCatalog() {
     products: productsWithPrices,
     flavors: allFlavors
   };
+}
+
+// ============ MEDIA FUNCTIONS ============
+
+export async function createMedia(data: InsertMedia) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(media).values(data);
+  return result[0].insertId;
+}
+
+export async function getMediaById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(media).where(eq(media.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function getMediaByProviderId(providerImageId: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(media).where(eq(media.providerImageId, providerImageId)).limit(1);
+  return result[0] || null;
+}
+
+export async function linkProductMedia(data: InsertProductMedia) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(productMedia).values(data);
+}
+
+export async function getProductMedia(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select({
+    media: media,
+    role: productMedia.role,
+    displayOrder: productMedia.displayOrder
+  })
+    .from(productMedia)
+    .innerJoin(media, eq(productMedia.mediaId, media.id))
+    .where(and(eq(productMedia.productId, productId), eq(media.status, "active")))
+    .orderBy(asc(productMedia.displayOrder));
+}
+
+export async function updateProductImage(productId: number, imageUrl: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(products)
+    .set({ imageUrl })
+    .where(eq(products.id, productId));
 }

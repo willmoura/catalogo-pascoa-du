@@ -39,7 +39,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        try {
+          const parsedItems: CartItem[] = JSON.parse(saved);
+
+          // Data Migration / Sanitization
+          const migratedItems = parsedItems.map(item => {
+            // Fix 1: Correct typo "Ovomaltina" -> "Ovomaltine"
+            if (item.flavor === "Ovomaltina") {
+              return { ...item, flavor: "Ovomaltine" };
+            }
+            return item;
+          });
+
+          return migratedItems;
+        } catch (e) {
+          console.error("Failed to parse cart items", e);
+          return [];
+        }
+      }
     }
     return [];
   });

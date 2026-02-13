@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, ZoomIn, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
@@ -360,16 +361,13 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                       <>
                         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
                           <AnimatePresence initial={false} mode="wait">
-                            <motion.img
+                            <motion.div
                               key={currentImageIndex}
                               initial={{ opacity: 0, x: 20 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: -20 }}
                               transition={{ duration: 0.3 }}
-                              src={allImages[currentImageIndex]}
-                              alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
-                              className={`max-h-full w-auto object-contain cursor-zoom-in ${isZoomed ? "scale-150" : ""}`}
-                              onClick={() => setIsZoomed(!isZoomed)}
+                              className="w-full h-full flex items-center justify-center p-2"
                               onTouchStart={(e) => {
                                 const touch = e.targetTouches[0];
                                 e.currentTarget.dataset.touchStartX = touch.clientX.toString();
@@ -393,7 +391,16 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                                   }
                                 }
                               }}
-                            />
+                            >
+                              <ResponsiveImage
+                                imageId={allImages[currentImageIndex]}
+                                alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
+                                className="w-auto h-auto max-h-full max-w-full bg-transparent"
+                                imageClassName={`object-contain cursor-zoom-in ${isZoomed ? "scale-150" : ""}`}
+                                onClick={() => setIsZoomed(!isZoomed)}
+                                priority={true}
+                              />
+                            </motion.div>
                           </AnimatePresence>
 
                           {/* Navigation Arrows */}

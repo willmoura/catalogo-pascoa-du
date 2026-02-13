@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ResponsiveImage } from "@/components/ui/responsive-image";
 
 interface ProductCardProps {
   product: {
@@ -37,10 +38,11 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-secondary/30">
         {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
+          <ResponsiveImage
+            imageId={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full bg-secondary/30"
+            imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

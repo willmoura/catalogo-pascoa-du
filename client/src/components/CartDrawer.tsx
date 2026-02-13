@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
+import { ResponsiveImage } from "./ui/responsive-image";
 
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || "5511999999999";
 
@@ -256,7 +257,12 @@ export default function CartDrawer() {
                         >
                           <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary/30 shrink-0">
                             {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                              <ResponsiveImage
+                                imageId={item.imageUrl}
+                                alt={item.productName}
+                                className="w-full h-full bg-secondary/30"
+                                imageClassName="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-zinc-100">
                                 <ShoppingBag className="w-8 h-8 text-zinc-300" />
