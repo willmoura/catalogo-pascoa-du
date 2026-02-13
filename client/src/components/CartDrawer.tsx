@@ -18,9 +18,9 @@ const PAYMENT_METHODS = [
   { id: "dinheiro", name: "Dinheiro", icon: "💵" },
 ];
 
-const DELIVERY_REGIONS = [
+const DELIVERY_REGIONS: { id: string; name: string; fee: number | null }[] = [
   { id: "torre", name: "Torre de Pedra", fee: 5.00 },
-  { id: "outra", name: "Outra cidade da região", fee: 20.00 },
+  { id: "outra", name: "Outra cidade da região", fee: null },
 ];
 
 export default function CartDrawer() {
@@ -52,6 +52,7 @@ export default function CartDrawer() {
     ? (DELIVERY_REGIONS.find(r => r.id === deliveryRegion)?.fee || 0)
     : 0;
 
+  const isFeeToBeAgreed = deliveryMethod === "entrega" && deliveryRegion === "outra";
   const finalTotal = totalPrice + deliveryFee;
 
   // Refs for Auto-Scroll
@@ -108,11 +109,19 @@ export default function CartDrawer() {
     message += `━━━━━━━━━━━━━━━━━━\n`;
     message += `*Subtotal: R$ ${totalPrice.toFixed(2).replace(".", ",")}*\n`;
 
-    if (deliveryMethod === "entrega" && deliveryFee > 0) {
-      message += `*Taxa de Entrega: R$ ${deliveryFee.toFixed(2).replace('.', ',')}*\n`;
+    if (deliveryMethod === "entrega") {
+      if (isFeeToBeAgreed) {
+        message += `*Taxa de Entrega: à combinar*\n`;
+      } else if (deliveryFee > 0) {
+        message += `*Taxa de Entrega: R$ ${deliveryFee.toFixed(2).replace('.', ',')}*\n`;
+      }
     }
 
-    message += `*TOTAL FINAL: R$ ${finalTotal.toFixed(2).replace(".", ",")}*\n\n`;
+    message += `*TOTAL FINAL: R$ ${finalTotal.toFixed(2).replace(".", ",")}*\n`;
+    if (isFeeToBeAgreed) {
+      message += `_(O total poderá ser ajustado pois a taxa de entrega é à combinar)_\n`;
+    }
+    message += `\n`;
 
     // Logistics Info
     message += `*Forma de Recebimento:* ${deliveryMethod === "retirada" ? "Retirar no Local" : "Entrega"}\n`;
@@ -354,7 +363,9 @@ export default function CartDrawer() {
                                   }`}
                               >
                                 <span>{region.name}</span>
-                                <span className="font-bold text-primary">R$ {region.fee.toFixed(2).replace('.', ',')}</span>
+                                <span className="font-bold text-primary">
+                                  {region.fee === null ? "À combinar" : `R$ ${region.fee.toFixed(2).replace('.', ',')}`}
+                                </span>
                               </button>
                             ))}
                           </div>
@@ -444,16 +455,26 @@ export default function CartDrawer() {
                   <span>Subtotal</span>
                   <span>R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
                 </div>
-                {checkoutStep === 'hub' && deliveryFee > 0 && (
+                {checkoutStep === 'hub' && deliveryRegion && (
                   <div className="flex justify-between text-sm text-primary">
                     <span>Taxa de Entrega</span>
-                    <span>+ R$ {deliveryFee.toFixed(2).replace('.', ',')}</span>
+                    <span>
+                      {isFeeToBeAgreed
+                        ? "À combinar"
+                        : `+ R$ ${deliveryFee.toFixed(2).replace('.', ',')}`}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between text-xl font-bold mt-1">
                   <span>Total</span>
                   <span>R$ {finalTotal.toFixed(2).replace('.', ',')}</span>
                 </div>
+                {/* Disclaimer */}
+                {isFeeToBeAgreed && (
+                  <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded-md mt-1 border border-amber-200">
+                    A taxa de entrega é à combinar. O total poderá ser ajustado posteriormente.
+                  </p>
+                )}
               </div>
 
               {checkoutStep === 'review' ? (
