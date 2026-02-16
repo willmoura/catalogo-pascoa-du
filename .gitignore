@@ -129,3 +129,9 @@ scripts/check_simple.cjs
 test_*.ts
 check_*.ts
 temp_*.ts
+
+# Ignored test outputs
+test-results-2.xml
+test-results.xml
+test_output.txt
+test_output_3.txt
