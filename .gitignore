@@ -134,4 +134,5 @@ temp_*.ts
 test-results-2.xml
 test-results.xml
 test_output.txt
+test_output_2.txt
 test_output_3.txt
