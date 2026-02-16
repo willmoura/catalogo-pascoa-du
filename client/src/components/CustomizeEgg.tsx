@@ -719,7 +719,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               style={{ backgroundColor: shell.color }}
                             />
                             <div className="text-left flex-1">
-                              <div className="font-bold text-amber-900">{shell.name}</div>
+                              <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
                             </div>
                             {shell1Config.shell?.id === shell.id && (
                               <Check className="w-5 h-5 text-amber-500" />
@@ -755,7 +755,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               style={{ backgroundColor: shell.color }}
                             />
                             <div className="text-left flex-1">
-                              <div className="font-bold text-amber-900">{shell.name}</div>
+                              <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
                             </div>
                             {shell2Config.shell?.id === shell.id && (
                               <Check className="w-5 h-5 text-amber-500" />
@@ -790,7 +790,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             style={{ backgroundColor: shell.color }}
                           />
                           <div className="text-left flex-1">
-                            <div className="font-bold text-amber-900">{shell.name}</div>
+                            <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
                             <div className="text-sm text-gray-600">{shell.description}</div>
                           </div>
                           {shell1Config.shell?.id === shell.id && (
@@ -995,7 +995,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               <Check className="w-3 h-3 text-white" />
                             </motion.div>
                           )}
-                          <div className="font-bold text-amber-900">{piece}</div>
+                          <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
                         </motion.button>
                       ))}
                     </div>
@@ -1029,7 +1029,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               <Check className="w-3 h-3 text-white" />
                             </motion.div>
                           )}
-                          <div className="font-bold text-amber-900">{piece}</div>
+                          <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
                         </motion.button>
                       ))}
                     </div>
@@ -1077,7 +1077,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             : "border-gray-200 hover:border-amber-300"
                             }`}
                         >
-                          <span className="font-medium text-amber-900">{filling}</span>
+                          <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
                           {shell1Config.filling === filling && (
                             <motion.div
                               initial={{ scale: 0 }}
@@ -1111,7 +1111,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             : "border-gray-200 hover:border-amber-300"
                             }`}
                         >
-                          <span className="font-medium text-amber-900">{filling}</span>
+                          <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
                           {shell2Config.filling === filling && (
                             <motion.div
                               initial={{ scale: 0 }}
@@ -1345,60 +1345,60 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                   {/* Peso */}
                   <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                     <span className="text-gray-600">Peso</span>
-                    <span className="font-semibold text-amber-900">{selectedWeight?.weight}</span>
+                    <span className="font-semibold text-amber-900 notranslate" translate="no">{selectedWeight?.weight}</span>
                   </div>
 
                   {/* Tipo */}
                   <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                     <span className="text-gray-600">Tipo</span>
-                    <span className="font-semibold text-amber-900">{selectedShellType?.name}</span>
+                    <span className="font-semibold text-amber-900 notranslate" translate="no">{selectedShellType?.name}</span>
                   </div>
 
                   {/* Casca(s) */}
                   <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                     <span className="text-gray-600">Casca</span>
-                    <span className="font-semibold text-amber-900">{getShellDescription()}</span>
+                    <span className="font-semibold text-amber-900 notranslate" translate="no">{getShellDescription()}</span>
                   </div>
 
                   {/* Detalhes da Casca 1 */}
                   {selectedShellType?.id === "duo" ? (
                     <>
                       <div className="bg-white rounded-lg p-3 space-y-2">
-                        <div className="text-sm font-semibold text-amber-800">Primeira metade ({shell1Config.shell?.name}):</div>
+                        <div className="text-sm font-semibold text-amber-800">Primeira metade (<span className="notranslate" translate="no">{shell1Config.shell?.name}</span>):</div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 text-sm">Acabamento</span>
-                          <span className="font-medium text-amber-900 text-sm">{shell1Config.finishType?.name}</span>
+                          <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.finishType?.name}</span>
                         </div>
                         {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600 text-sm">Pedaços</span>
-                            <span className="font-medium text-amber-900 text-sm">{shell1Config.pieces}</span>
+                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.pieces}</span>
                           </div>
                         )}
                         {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600 text-sm">Recheio</span>
-                            <span className="font-medium text-amber-900 text-sm">{shell1Config.filling}</span>
+                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.filling}</span>
                           </div>
                         )}
                       </div>
 
                       <div className="bg-white rounded-lg p-3 space-y-2">
-                        <div className="text-sm font-semibold text-amber-800">Segunda metade ({shell2Config.shell?.name}):</div>
+                        <div className="text-sm font-semibold text-amber-800">Segunda metade (<span className="notranslate" translate="no">{shell2Config.shell?.name}</span>):</div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 text-sm">Acabamento</span>
-                          <span className="font-medium text-amber-900 text-sm">{shell2Config.finishType?.name}</span>
+                          <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.finishType?.name}</span>
                         </div>
                         {shell2Config.finishType?.id === "pedacos" && shell2Config.pieces && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600 text-sm">Pedaços</span>
-                            <span className="font-medium text-amber-900 text-sm">{shell2Config.pieces}</span>
+                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.pieces}</span>
                           </div>
                         )}
                         {shell2Config.finishType?.id === "recheada" && shell2Config.filling && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600 text-sm">Recheio</span>
-                            <span className="font-medium text-amber-900 text-sm">{shell2Config.filling}</span>
+                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.filling}</span>
                           </div>
                         )}
                       </div>
@@ -1407,18 +1407,18 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <>
                       <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                         <span className="text-gray-600">Acabamento</span>
-                        <span className="font-semibold text-amber-900">{shell1Config.finishType?.name}</span>
+                        <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.finishType?.name}</span>
                       </div>
                       {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
                         <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                           <span className="text-gray-600">Pedaços</span>
-                          <span className="font-semibold text-amber-900">{shell1Config.pieces}</span>
+                          <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.pieces}</span>
                         </div>
                       )}
                       {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
                         <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                           <span className="text-gray-600">Recheio</span>
-                          <span className="font-semibold text-amber-900">{shell1Config.filling}</span>
+                          <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.filling}</span>
                         </div>
                       )}
                     </>
@@ -1497,11 +1497,11 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
           >
             <div className="flex items-center justify-between text-sm">
               <div className="text-amber-800 truncate mr-2">
-                {selectedWeight && <span>{selectedWeight.weight}</span>}
-                {selectedShellType && <span> • {selectedShellType.name}</span>}
-                {shell1Config.shell && <span> • {getShellDescription()}</span>}
+                {selectedWeight && <span className="notranslate" translate="no">{selectedWeight.weight}</span>}
+                {selectedShellType && <span className="notranslate" translate="no"> • {selectedShellType.name}</span>}
+                {shell1Config.shell && <span className="notranslate" translate="no"> • {getShellDescription()}</span>}
                 {shell1Config.finishType && (
-                  <span> • {shell1Config.finishType.name}</span>
+                  <span className="notranslate" translate="no"> • {shell1Config.finishType.name}</span>
                 )}
               </div>
               <div className="font-bold text-amber-900 whitespace-nowrap">

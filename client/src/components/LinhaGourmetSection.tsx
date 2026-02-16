@@ -25,7 +25,7 @@ interface LinhaGourmetSectionProps {
 
 export default function LinhaGourmetSection({ onSelectProduct, isVisible = true }: LinhaGourmetSectionProps) {
   if (!isVisible) return null;
-  
+
   return (
     <section className="py-12 md:py-16 bg-background">
       <div className="container">
@@ -74,7 +74,7 @@ export default function LinhaGourmetSection({ onSelectProduct, isVisible = true 
               onClick={() => onSelectProduct("ovo-trufado-gourmet")}
               className="px-4 py-3 bg-[var(--cream)] hover:bg-[var(--gold)]/20 border border-border rounded-xl text-[var(--chocolate)] font-medium transition-colors text-sm md:text-base"
             >
-              {flavor}
+              <span className="notranslate" translate="no">{flavor}</span>
             </motion.button>
           ))}
         </div>

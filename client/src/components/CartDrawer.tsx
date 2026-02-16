@@ -279,11 +279,11 @@ export default function CartDrawer() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground line-clamp-1">{item.productName}</h4>
+                            <h4 className="font-semibold text-foreground line-clamp-1 notranslate" translate="no">{item.productName}</h4>
                             <p className="text-sm text-muted-foreground">
                               {item.weight}
-                              {item.shell && ` • Casca: ${item.shell}`}
-                              {item.flavor && ` • ${item.flavor}`}
+                              {item.shell && <span className="notranslate" translate="no"> • Casca: {item.shell}</span>}
+                              {item.flavor && <span className="notranslate" translate="no"> • {item.flavor}</span>}
                             </p>
                             <p className="text-primary font-bold mt-1">R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}</p>
                             <div className="flex items-center justify-between mt-2">

@@ -79,7 +79,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-foreground line-clamp-1 mb-1">
+        <h3 className="font-semibold text-foreground line-clamp-1 mb-1 notranslate" translate="no">
           {product.name}
         </h3>
         {product.shortDescription && (

@@ -468,7 +468,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                   <div className="p-6 space-y-6">
                     {/* Title & Description */}
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground mb-2">
+                      <h2 className="text-2xl font-bold text-foreground mb-2 notranslate" translate="no">
                         {product.name}
                       </h2>
                       {product.description && (
@@ -575,7 +575,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
 
                             return (
                               <div key={flavorName} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/50">
-                                <span className="font-medium">{flavorName}</span>
+                                <span className="font-medium notranslate" translate="no">{flavorName}</span>
                                 <div className="flex items-center gap-3">
                                   <Button
                                     variant="ghost"
@@ -631,7 +631,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                                 : "border-border hover:border-primary/50"
                                 }`}
                             >
-                              <span className={selectedFlavor?.flavor.id === flavorItem.flavor.id ? "text-primary-foreground font-medium" : ""}>
+                              <span className={`notranslate ${selectedFlavor?.flavor.id === flavorItem.flavor.id ? "text-primary-foreground font-medium" : ""}`} translate="no">
                                 {flavorItem.flavor.name}
                               </span>
                             </motion.button>
@@ -658,7 +658,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                                 : "border-border hover:border-primary/50"
                                 }`}
                             >
-                              {flavorItem.flavor.name}
+                              <span className="notranslate" translate="no">{flavorItem.flavor.name}</span>
                               {parseFloat(flavorItem.additionalPrice || "0") > 0 && (
                                 <span className="text-xs text-muted-foreground ml-1">
                                   (+R$ {parseFloat(flavorItem.additionalPrice || "0").toFixed(2).replace(".", ",")})
@@ -685,7 +685,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                               className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg border border-border"
                             >
                               <div className="w-2 h-2 rounded-full bg-[var(--gold)]" />
-                              <span className="text-sm text-foreground">{flavorItem.flavor.name}</span>
+                              <span className="text-sm text-foreground notranslate" translate="no">{flavorItem.flavor.name}</span>
                             </div>
                           ))}
                         </div>
