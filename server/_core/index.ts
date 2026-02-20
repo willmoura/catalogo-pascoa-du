@@ -42,6 +42,35 @@ async function startServer() {
 
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+
+  // Endpoint de emergência para corrigir o banco de Produção
+  app.get("/api/fix-trufados", async (req, res) => {
+    try {
+      const { trufadosMapping } = await import("../trufados-mapping");
+      const { getDb } = await import("../db");
+      const { sql } = await import("drizzle-orm");
+
+      const db = await getDb();
+      if (!db) {
+        res.status(500).json({ error: "No Database" });
+        return;
+      }
+
+      let updated = 0;
+      for (const item of trufadosMapping) {
+        if (!item.imageUrl || item.imageUrl.includes('.png')) continue;
+
+        await db.execute(sql`UPDATE products SET imageUrl = ${item.imageUrl} WHERE slug = ${item.slug}`);
+        const arr = JSON.stringify([item.imageUrl]);
+        await db.execute(sql`UPDATE products SET galleryImages = ${arr} WHERE slug = ${item.slug}`);
+        updated++;
+      }
+      res.json({ success: true, message: `Sincronização forçada concluída com sucesso. ${updated} ovos atualizados na nuvem.` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
