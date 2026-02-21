@@ -36,13 +36,13 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       onClick={onClick}
     >
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-secondary/30">
+      <div className="relative product-image overflow-hidden bg-secondary/30">
         {product.imageUrl ? (
           <ResponsiveImage
             imageId={product.imageUrl}
             alt={product.name}
             className="w-full h-full bg-secondary/30"
-            imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            imageClassName="w-full h-full transition-transform duration-500 group-hover:scale-110 object-contain"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
