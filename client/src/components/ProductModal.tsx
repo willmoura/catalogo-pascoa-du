@@ -128,7 +128,11 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       let defaultShell = "";
 
       if (product.category?.slug === 'ovos-trufados' && !isOvoDeColher) {
-        defaultShell = "Ao Leite";
+        if (product.name.toLowerCase().includes('laka oreo')) {
+          defaultShell = "Branco";
+        } else {
+          defaultShell = "Ao Leite";
+        }
       }
 
       setSelectedShell(defaultShell);
@@ -525,7 +529,10 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                           Escolha a Casca {isOvoDeColher && <span className="text-red-500">*</span>}
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                          {['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco'].map((shell) => (
+                          {(product.name.toLowerCase().includes('laka oreo')
+                            ? ['Branco']
+                            : ['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']
+                          ).map((shell) => (
                             <motion.button
                               key={shell}
                               whileHover={{ scale: 1.02 }}

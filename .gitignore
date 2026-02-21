@@ -147,3 +147,15 @@ test-*
 todo.md
 update_*.ts
 verify_*.ts
+
+# Pricing & Analysis Reports
+auditoria_precificacao_2026.md
+db_output.json
+db_schema.json
+err.txt
+exported_pricing_data.json
+final_report.md
+raw_data.json
+report.md
+simulacao_precos_2026.md
+simulacao_upsal_2026.md
