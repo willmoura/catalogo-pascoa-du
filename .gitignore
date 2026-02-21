@@ -111,19 +111,11 @@ temp/
 *.sqlite
 *.sqlite3
 
+# Local Agent/AI folders
+.manus/
+
 # Custom scripts (local only)
-scripts/test_*.ts
-scripts/check_*.ts
-scripts/verify_*.ts
-scripts/find_*.ts
-scripts/list_*.ts
-scripts/add_*.ts
-scripts/delete_*.ts
-scripts/recreate_*.ts
-scripts/process_images.ts
-scripts/update_image_urls.ts
-update_gallery_images_root.ts
-scripts/check_simple.cjs
+scripts/
 *.test.ts
 *.spec.ts
 test_*.ts

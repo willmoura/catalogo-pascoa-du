@@ -1,8 +1,0 @@
-{
-  "query": "UPDATE products SET isActive = 1, categoryId = (SELECT id FROM categories WHERE name LIKE '%trufado%' LIMIT 1) WHERE id = 30003;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ybigjze5zrQRNb.root --database mAyHYydgnUj6kaCQZYvmfs --execute UPDATE products SET isActive = 1, categoryId = (SELECT id FROM categories WHERE name LIKE '%trufado%' LIMIT 1) WHERE id = 30003;",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1048 (23000) at line 1: Column 'categoryId' cannot be null"
-  ]
-}
