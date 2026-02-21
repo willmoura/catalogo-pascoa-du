@@ -149,3 +149,9 @@ original-site-info.md
 output*.txt
 *_backup*.json
 *migration*.json
+correction_log_*.json
+products_*.txt
+test-*
+todo.md
+update_*.ts
+verify_*.ts
