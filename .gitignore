@@ -136,3 +136,16 @@ test-results.xml
 test_output.txt
 test_output_2.txt
 test_output_3.txt
+
+# Custom Local & Debug Files
+check_*
+check-*
+debug*
+diagnose_*
+*dump*
+fix_*
+get-cf-hash.ts
+original-site-info.md
+output*.txt
+*_backup*.json
+*migration*.json
