@@ -228,29 +228,24 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
   const { addItem } = useCart();
 
-  const hasWhiteShell = useMemo(() => {
-    if (selectedShellType?.id === "duo") {
-      return shell1Config.shell?.id === "branco" || shell2Config.shell?.id === "branco";
-    }
-    return shell1Config.shell?.id === "branco";
-  }, [selectedShellType, shell1Config.shell, shell2Config.shell]);
-
-  const availableFillings = useMemo(() => {
-    if (hasWhiteShell) return FILLINGS;
+  const getAvailableFillings = (shellId: string | undefined) => {
+    if (shellId === "branco") return FILLINGS;
     return FILLINGS.filter(f => f !== "Laka Oreo" && f !== "Laka Oreo com Nutella");
-  }, [hasWhiteShell]);
+  };
 
   // Limpar recheio inválido se a condição da casca mudar
   useEffect(() => {
-    if (!hasWhiteShell) {
+    if (shell1Config.shell?.id !== "branco") {
       if (shell1Config.filling === "Laka Oreo" || shell1Config.filling === "Laka Oreo com Nutella") {
         setShell1Config(prev => ({ ...prev, filling: null }));
       }
+    }
+    if (shell2Config.shell?.id !== "branco") {
       if (shell2Config.filling === "Laka Oreo" || shell2Config.filling === "Laka Oreo com Nutella") {
         setShell2Config(prev => ({ ...prev, filling: null }));
       }
     }
-  }, [hasWhiteShell, shell1Config.filling, shell2Config.filling]);
+  }, [shell1Config.shell, shell2Config.shell, shell1Config.filling, shell2Config.filling]);
 
   const isFeeToBeAgreed = deliveryMethod === "entrega" && deliveryRegion === "outra";
   const finalTotal = (selectedWeight?.price || 0) * quantity + (deliveryFee || 0);
@@ -1094,7 +1089,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       </p>
                     )}
                     <div className="grid grid-cols-2 gap-2">
-                      {availableFillings.map((filling) => (
+                      {getAvailableFillings(shell1Config.shell?.id).map((filling) => (
                         <motion.button
                           key={`filling1-${filling}`}
                           whileHover={{ scale: 1.02 }}
@@ -1133,7 +1128,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       {shell2Config.shell?.name}:
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {availableFillings.map((filling) => (
+                      {getAvailableFillings(shell2Config.shell?.id).map((filling) => (
                         <motion.button
                           key={`filling2-${filling}`}
                           whileHover={{ scale: 1.02 }}
