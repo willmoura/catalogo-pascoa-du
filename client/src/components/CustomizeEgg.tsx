@@ -8,9 +8,9 @@ import { format } from "date-fns";
 
 // Dados das opções
 const WEIGHTS = [
-  { weight: "400g", price: 99.90 },
-  { weight: "600g", price: 149.90 },
-  { weight: "800g", price: 189.90 },
+  { weight: "400g", price: 123.90 },
+  { weight: "600g", price: 184.90 },
+  { weight: "800g", price: 245.90 },
 ];
 
 const SHELL_TYPES = [
@@ -45,7 +45,7 @@ const FILLINGS = [
   "Franuí", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella",
   "Maracujá com Nutella", "Maracujá", "Ovomaltine", "Strogonoff de Nozes",
   "Alpino", "Doce de Leite", "Prestígio", "Sensação", "Charge", "Trufa Tradicional",
-  "Laka Oreo"
+  "Laka Oreo", "Laka Oreo com Nutella"
 ];
 
 const PAYMENT_METHODS = [
@@ -62,9 +62,9 @@ interface ShellConfig {
   filling: string | null;
 }
 
-const DELIVERY_REGIONS = [
+const DELIVERY_REGIONS: { id: string; name: string; fee: number | null }[] = [
   { id: "torre", name: "Torre de Pedra", fee: 5.00 },
-  { id: "outra", name: "Outra cidade da região", fee: 20.00 },
+  { id: "outra", name: "Outra cidade da região", fee: null },
 ];
 
 interface CustomizeEggProps {
@@ -227,6 +227,33 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const [deliveryFee, setDeliveryFee] = useState(0);
 
   const { addItem } = useCart();
+
+  const hasWhiteShell = useMemo(() => {
+    if (selectedShellType?.id === "duo") {
+      return shell1Config.shell?.id === "branco" || shell2Config.shell?.id === "branco";
+    }
+    return shell1Config.shell?.id === "branco";
+  }, [selectedShellType, shell1Config.shell, shell2Config.shell]);
+
+  const availableFillings = useMemo(() => {
+    if (hasWhiteShell) return FILLINGS;
+    return FILLINGS.filter(f => f !== "Laka Oreo" && f !== "Laka Oreo com Nutella");
+  }, [hasWhiteShell]);
+
+  // Limpar recheio inválido se a condição da casca mudar
+  useEffect(() => {
+    if (!hasWhiteShell) {
+      if (shell1Config.filling === "Laka Oreo" || shell1Config.filling === "Laka Oreo com Nutella") {
+        setShell1Config(prev => ({ ...prev, filling: null }));
+      }
+      if (shell2Config.filling === "Laka Oreo" || shell2Config.filling === "Laka Oreo com Nutella") {
+        setShell2Config(prev => ({ ...prev, filling: null }));
+      }
+    }
+  }, [hasWhiteShell, shell1Config.filling, shell2Config.filling]);
+
+  const isFeeToBeAgreed = deliveryMethod === "entrega" && deliveryRegion === "outra";
+  const finalTotal = (selectedWeight?.price || 0) * quantity + (deliveryFee || 0);
 
   // Calcular se precisa de etapa de recheio
   const needsFillingStep = useMemo(() => {
@@ -435,11 +462,17 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
     message += `━━━━━━━━━━━━━━━━━━\n`;
     message += `*Subtotal: R$ ${(selectedWeight.price * quantity).toFixed(2).replace('.', ',')}*\n`;
-    if (deliveryMethod === "entrega" && deliveryFee > 0) {
-      message += `*Taxa de Entrega: R$ ${deliveryFee.toFixed(2).replace('.', ',')}*\n`;
+    if (deliveryMethod === "entrega") {
+      if (isFeeToBeAgreed) {
+        message += `*Taxa de Entrega: à combinar*\n`;
+      } else if (deliveryFee > 0) {
+        message += `*Taxa de Entrega: R$ ${deliveryFee.toFixed(2).replace('.', ',')}*\n`;
+      }
     }
-    const finalTotal = (selectedWeight.price * quantity) + (deliveryFee || 0);
     message += `*TOTAL FINAL: R$ ${finalTotal.toFixed(2).replace('.', ',')}*\n`;
+    if (isFeeToBeAgreed) {
+      message += `_(O total poderá ser ajustado pois a taxa de entrega é à combinar)_\n`;
+    }
     message += `━━━━━━━━━━━━━━━━━━\n\n`;
 
 
@@ -1061,7 +1094,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       </p>
                     )}
                     <div className="grid grid-cols-2 gap-2">
-                      {FILLINGS.map((filling) => (
+                      {availableFillings.map((filling) => (
                         <motion.button
                           key={`filling1-${filling}`}
                           whileHover={{ scale: 1.02 }}
@@ -1100,7 +1133,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                       {shell2Config.shell?.name}:
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {FILLINGS.map((filling) => (
+                      {availableFillings.map((filling) => (
                         <motion.button
                           key={`filling2-${filling}`}
                           whileHover={{ scale: 1.02 }}
@@ -1248,14 +1281,16 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                                 checked={deliveryRegion === region.id}
                                 onChange={() => {
                                   setDeliveryRegion(region.id as "torre" | "outra");
-                                  setDeliveryFee(region.fee);
+                                  setDeliveryFee(region.fee || 0);
                                   setTimeout(() => scrollToSection(deliveryDateRef), 300);
                                 }}
                                 className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
                               />
                               <div className="ml-3 flex-1 flex justify-between">
                                 <span className="text-sm font-medium text-gray-900">{region.name}</span>
-                                <span className="text-sm font-bold text-amber-700">+ R$ {region.fee.toFixed(2).replace('.', ',')}</span>
+                                <span className="text-sm font-bold text-amber-700">
+                                  {region.fee === null ? "À combinar" : `+ R$ ${region.fee.toFixed(2).replace('.', ',')}`}
+                                </span>
                               </div>
                             </label>
                           ))}
@@ -1441,10 +1476,14 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                         <div className="text-xs text-gray-500 mt-1 pt-1 border-t border-gray-100">
                           {deliveryAddress}
                         </div>
-                        <div className="flex justify-between items-center text-sm pt-1">
-                          <span className="text-gray-600">Taxa de entrega</span>
-                          <span className="font-medium text-amber-900">R$ {deliveryFee.toFixed(2).replace('.', ',')}</span>
-                        </div>
+                        {deliveryRegion && (
+                          <div className="flex justify-between items-center text-sm pt-1">
+                            <span className="text-gray-600">Taxa de entrega</span>
+                            <span className="font-medium text-amber-900">
+                              {isFeeToBeAgreed ? "À combinar" : `R$ ${deliveryFee.toFixed(2).replace('.', ',')}`}
+                            </span>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -1479,9 +1518,15 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-lg font-bold text-amber-900">Total</span>
                     <span className="text-xl font-bold text-green-600">
-                      R$ {(((selectedWeight?.price || 0) * quantity) + (deliveryFee || 0)).toFixed(2).replace('.', ',')}
+                      R$ {finalTotal.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
+                  {/* Disclaimer À Combinar */}
+                  {isFeeToBeAgreed && (
+                    <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded-md mt-1 border border-amber-200">
+                      A taxa de entrega é à combinar. O total poderá ser ajustado posteriormente.
+                    </p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -1505,7 +1550,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 )}
               </div>
               <div className="font-bold text-amber-900 whitespace-nowrap">
-                R$ {((selectedWeight.price * quantity) + (deliveryFee || 0)).toFixed(2).replace('.', ',')}
+                R$ {finalTotal.toFixed(2).replace('.', ',')}
               </div>
             </div>
           </motion.div>
