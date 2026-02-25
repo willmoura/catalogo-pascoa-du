@@ -13,40 +13,35 @@ const WEIGHTS = [
   { weight: "800g", price: 245.90 },
 ];
 
-const SHELL_TYPES = [
-  { id: "unica", name: "Casca Única", description: "As duas metades do mesmo chocolate" },
-  { id: "duo", name: "Duo", description: "Uma metade de cada chocolate" },
-];
-
 const SHELLS = [
   { id: "ao-leite", name: "Ao Leite", description: "Chocolate ao leite cremoso", color: "#8B4513" },
   { id: "branco", name: "Branco", description: "Chocolate branco suave", color: "#FFF8DC" },
   { id: "meio-amargo", name: "Meio Amargo", description: "50% cacau, equilibrado", color: "#5D3A1A" },
+  { id: "laka-oreo", name: "Laka Oreo", description: "Chocolate branco com pedaços de Oreo", color: "#F4F4F4" },
 ];
 
 const FINISH_TYPES = [
-  { id: "pedacos", name: "Com Pedaços", description: "Casca com pedaços de castanhas ou amêndoas" },
+  { id: "pedacos", name: "Com Pedaços", description: "Casca com pedaços de castanhas" },
   { id: "recheada", name: "Recheada", description: "Casca com recheio cremoso" },
 ];
 
-// Pedaços disponíveis por tipo de casca
-// Oreo e Laka Oreo só disponíveis para casca branca
 const PIECES_OPTIONS_BASE = ["Avelã", "Castanha de Caju"];
-const PIECES_OPTIONS_WHITE_ONLY = ["Laka Oreo"];
 
-const getPiecesOptionsForShell = (shellId: string | undefined) => {
-  if (shellId === "branco") {
-    return [...PIECES_OPTIONS_BASE, ...PIECES_OPTIONS_WHITE_ONLY];
-  }
-  return PIECES_OPTIONS_BASE;
-};
-
-const FILLINGS = [
-  "Franuí", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella",
-  "Maracujá com Nutella", "Maracujá", "Ovomaltine", "Strogonoff de Nozes",
-  "Alpino", "Doce de Leite", "Prestígio", "Sensação", "Charge", "Trufa Tradicional",
-  "Laka Oreo", "Laka Oreo com Nutella"
+const FILLINGS_20 = [
+  "Franuí", "Ferrero Rocher", "Maracujá com Nutella", "Ovomaltine",
+  "Alpino", "Kinder Bueno", "Ninho com Nutella", "Strogonoff de Nozes", "Sensação"
 ];
+
+const FILLINGS_10 = [
+  "Prestígio", "Charge", "Maracujá", "Doce de Leite", "Trufa Tradicional"
+];
+
+const getFillingPrice = (filling: string | null) => {
+  if (!filling) return 0;
+  if (FILLINGS_20.includes(filling) || filling === "Laka Oreo com Nutella") return 20;
+  if (FILLINGS_10.includes(filling)) return 10;
+  return 0;
+};
 
 const PAYMENT_METHODS = [
   { id: "pix", name: "PIX", icon: "pix" },
@@ -75,7 +70,6 @@ interface CustomizeEggProps {
 export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const [step, setStep] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<typeof WEIGHTS[0] | null>(null);
-  const [selectedShellType, setSelectedShellType] = useState<typeof SHELL_TYPES[0] | null>(null);
 
   const [quantity, setQuantity] = useState(1);
 
@@ -229,84 +223,78 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const { addItem } = useCart();
 
   const getAvailableFillings = (shellId: string | undefined) => {
-    if (shellId === "branco") return FILLINGS;
-    return FILLINGS.filter(f => f !== "Laka Oreo" && f !== "Laka Oreo com Nutella");
+    if (shellId === "laka-oreo") return ["Laka Oreo com Nutella"];
+    return [...FILLINGS_20, ...FILLINGS_10];
   };
 
   // Limpar recheio inválido se a condição da casca mudar
   useEffect(() => {
-    if (shell1Config.shell?.id !== "branco") {
-      if (shell1Config.filling === "Laka Oreo" || shell1Config.filling === "Laka Oreo com Nutella") {
+    if (shell1Config.shell?.id !== "laka-oreo") {
+      if (shell1Config.filling === "Laka Oreo com Nutella") {
         setShell1Config(prev => ({ ...prev, filling: null }));
       }
     }
-    if (shell2Config.shell?.id !== "branco") {
-      if (shell2Config.filling === "Laka Oreo" || shell2Config.filling === "Laka Oreo com Nutella") {
+    if (shell2Config.shell?.id !== "laka-oreo") {
+      if (shell2Config.filling === "Laka Oreo com Nutella") {
         setShell2Config(prev => ({ ...prev, filling: null }));
       }
     }
   }, [shell1Config.shell, shell2Config.shell, shell1Config.filling, shell2Config.filling]);
 
+  const calculateHalfPrice = (config: ShellConfig) => {
+    let delta = 0;
+    if (config.shell?.id === 'laka-oreo') delta += 10;
+    if (config.finishType?.id === 'pedacos' && config.pieces) delta += 10;
+    if (config.finishType?.id === 'recheada' && config.filling) delta += getFillingPrice(config.filling);
+    return delta;
+  };
+
   const isFeeToBeAgreed = deliveryMethod === "entrega" && deliveryRegion === "outra";
-  const finalTotal = (selectedWeight?.price || 0) * quantity + (deliveryFee || 0);
+  const customTotal = (selectedWeight?.price || 0) + calculateHalfPrice(shell1Config) + calculateHalfPrice(shell2Config);
+  const finalTotal = customTotal * quantity + (deliveryFee || 0);
 
   // Calcular se precisa de etapa de recheio
   const needsFillingStep = useMemo(() => {
-    if (selectedShellType?.id === "duo") {
-      return shell1Config.finishType?.id === "recheada" || shell2Config.finishType?.id === "recheada";
-    }
-    return shell1Config.finishType?.id === "recheada";
-  }, [selectedShellType, shell1Config.finishType, shell2Config.finishType]);
+    return shell1Config.finishType?.id === "recheada" || shell2Config.finishType?.id === "recheada";
+  }, [shell1Config.finishType, shell2Config.finishType]);
 
   // Calcular total de etapas dinamicamente
   const totalSteps = useMemo(() => {
-    // Etapa 1: Peso
-    // Etapa 2: Tipo de Casca (Única ou Duo)
-    // Etapa 3: Escolha das Cascas (chocolate)
-    // Etapa 4: Tipo de Acabamento (pedaços ou recheada)
-    // Etapa 5: Escolha de Pedaços (se aplicável)
-    // Etapa 6: Escolha de Recheio (se aplicável)
-    // Etapa 7: Método de Pagamento
-    // Etapa Final: Resumo do Pedido
-
-    let steps = 6; // Base: Peso, Tipo, Cascas, Acabamento, Pagamento + Resumo
+    let steps = 5; // Base: Peso, Cascas, Acabamento, Pagamento + Resumo
 
     // Se alguma casca tem pedaços, adiciona etapa de pedaços
-    const hasPieces = shell1Config.finishType?.id === "pedacos" ||
-      (selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos");
+    const hasPieces = shell1Config.finishType?.id === "pedacos" || shell2Config.finishType?.id === "pedacos";
     if (hasPieces) steps++;
 
     // Se alguma casca é recheada, adiciona etapa de recheio
     if (needsFillingStep) steps++;
 
     return steps;
-  }, [selectedShellType, shell1Config.finishType, shell2Config.finishType, needsFillingStep]);
+  }, [shell1Config.finishType, shell2Config.finishType, needsFillingStep]);
 
   // Determinar qual é a etapa atual baseado no contexto
   const getStepContent = () => {
-    const hasPieces = shell1Config.finishType?.id === "pedacos" ||
-      (selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos");
+    const hasPieces = shell1Config.finishType?.id === "pedacos" || shell2Config.finishType?.id === "pedacos";
 
     switch (step) {
       case 1: return "weight";
-      case 2: return "shellType";
-      case 3: return "shells";
-      case 4: return "finishType";
-      case 5: {
+      case 2: return "shells";
+      case 3: return "finishType";
+      case 4: {
         if (hasPieces) return "pieces";
         if (needsFillingStep) return "filling";
         return "payment";
       }
-      case 6: {
+      case 5: {
         if (hasPieces && needsFillingStep) return "filling";
         if (hasPieces || needsFillingStep) return "payment";
         return "summary";
       }
-      case 7: {
+      case 6: {
         if (hasPieces && needsFillingStep) return "payment";
         return "summary";
       }
-      case 8: return "summary";
+      case 7: return "summary";
       default: return "summary";
     }
   };
@@ -316,21 +304,13 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const canProceed = () => {
     switch (currentStepContent) {
       case "weight": return selectedWeight !== null;
-      case "shellType": return selectedShellType !== null;
       case "shells":
-        if (selectedShellType?.id === "duo") {
-          return shell1Config.shell !== null && shell2Config.shell !== null &&
-            shell1Config.shell.id !== shell2Config.shell.id;
-        }
-        return shell1Config.shell !== null;
+        return shell1Config.shell !== null && shell2Config.shell !== null;
       case "finishType":
-        if (selectedShellType?.id === "duo") {
-          return shell1Config.finishType !== null && shell2Config.finishType !== null;
-        }
-        return shell1Config.finishType !== null;
+        return shell1Config.finishType !== null && shell2Config.finishType !== null;
       case "pieces": {
         const shell1NeedsPieces = shell1Config.finishType?.id === "pedacos";
-        const shell2NeedsPieces = selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos";
+        const shell2NeedsPieces = shell2Config.finishType?.id === "pedacos";
 
         if (shell1NeedsPieces && !shell1Config.pieces) return false;
         if (shell2NeedsPieces && !shell2Config.pieces) return false;
@@ -338,10 +318,18 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
       }
       case "filling": {
         const shell1NeedsFilling = shell1Config.finishType?.id === "recheada";
-        const shell2NeedsFilling = selectedShellType?.id === "duo" && shell2Config.finishType?.id === "recheada";
+        const shell2NeedsFilling = shell2Config.finishType?.id === "recheada";
 
         if (shell1NeedsFilling && !shell1Config.filling) return false;
         if (shell2NeedsFilling && !shell2Config.filling) return false;
+
+        // Bloqueio de repetição de recheio
+        if (shell1NeedsFilling && shell2NeedsFilling &&
+          shell1Config.filling === shell2Config.filling &&
+          shell1Config.filling !== null) {
+          return false;
+        }
+
         return true;
       }
       case "payment":
@@ -381,15 +369,12 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   const resetState = () => {
     setStep(1);
     setSelectedWeight(null);
-    setSelectedShellType(null);
     setShell1Config({ shell: null, finishType: null, pieces: null, filling: null });
     setShell2Config({ shell: null, finishType: null, pieces: null, filling: null });
-    setObservations("");
     setObservations("");
     setSelectedPaymentMethod(null);
     setDeliveryMethod(null);
     setDeliveryAddress("");
-    setDeliveryRegion(null);
     setDeliveryRegion(null);
     setDeliveryDate(undefined);
     setDeliveryFee(0);
@@ -402,61 +387,47 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   };
 
   const getShellDescription = () => {
-    if (selectedShellType?.id === "duo" && shell1Config.shell && shell2Config.shell) {
+    if (shell1Config.shell && shell2Config.shell) {
       return `${shell1Config.shell.name} + ${shell2Config.shell.name}`;
     }
     return shell1Config.shell?.name || "";
   };
 
   const getFinishDescription = () => {
-    if (selectedShellType?.id === "duo") {
-      const finish1 = shell1Config.finishType?.id === "pedacos"
-        ? `${shell1Config.pieces}`
-        : shell1Config.filling;
-      const finish2 = shell2Config.finishType?.id === "pedacos"
-        ? `${shell2Config.pieces}`
-        : shell2Config.filling;
-      return `${finish1} / ${finish2}`;
-    }
-    return shell1Config.finishType?.id === "pedacos"
-      ? shell1Config.pieces
+    const finish1 = shell1Config.finishType?.id === "pedacos"
+      ? `${shell1Config.pieces}`
       : shell1Config.filling;
+    const finish2 = shell2Config.finishType?.id === "pedacos"
+      ? `${shell2Config.pieces}`
+      : shell2Config.filling;
+    return `${finish1} / ${finish2}`;
   };
 
   const formatWhatsAppMessage = () => {
-    if (!selectedWeight || !selectedShellType || !shell1Config.shell || !shell1Config.finishType) return "";
+    if (!selectedWeight || !shell1Config.shell || !shell2Config.shell || !shell1Config.finishType || !shell2Config.finishType) return "";
 
     let message = `*PEDIDO PERSONALIZADO - OVOS DE PÁSCOA DU*\n\n`;
     message += `*Meu Ovo Personalizado*\n\n`;
     message += `• Quantidade: ${quantity}\n`;
     message += `• Peso: ${selectedWeight.weight}\n`;
-    message += `• Tipo: ${selectedShellType.name}\n`;
     message += `• Casca: ${getShellDescription()}\n`;
 
-    if (selectedShellType.id === "duo") {
-      message += `\n*Primeira metade (${shell1Config.shell.name}):*\n`;
-      if (shell1Config.finishType.id === "pedacos") {
-        message += `  - Com pedaços de ${shell1Config.pieces}\n`;
-      } else {
-        message += `  - Recheio: ${shell1Config.filling}\n`;
-      }
-
-      message += `\n*Segunda metade (${shell2Config.shell?.name}):*\n`;
-      if (shell2Config.finishType?.id === "pedacos") {
-        message += `  - Com pedaços de ${shell2Config.pieces}\n`;
-      } else {
-        message += `  - Recheio: ${shell2Config.filling}\n`;
-      }
+    message += `\n*Primeira metade (${shell1Config.shell.name}):*\n`;
+    if (shell1Config.finishType.id === "pedacos") {
+      message += `  - Com pedaços de ${shell1Config.pieces}\n`;
     } else {
-      if (shell1Config.finishType.id === "pedacos") {
-        message += `• Acabamento: Com pedaços de ${shell1Config.pieces}\n`;
-      } else {
-        message += `• Recheio: ${shell1Config.filling}\n`;
-      }
+      message += `  - Recheio: ${shell1Config.filling}\n`;
+    }
+
+    message += `\n*Segunda metade (${shell2Config.shell.name}):*\n`;
+    if (shell2Config.finishType.id === "pedacos") {
+      message += `  - Com pedaços de ${shell2Config.pieces}\n`;
+    } else {
+      message += `  - Recheio: ${shell2Config.filling}\n`;
     }
 
     message += `━━━━━━━━━━━━━━━━━━\n`;
-    message += `*Subtotal: R$ ${(selectedWeight.price * quantity).toFixed(2).replace('.', ',')}*\n`;
+    message += `*Subtotal: R$ ${(customTotal * quantity).toFixed(2).replace('.', ',')}*\n`;
     if (deliveryMethod === "entrega") {
       if (isFeeToBeAgreed) {
         message += `*Taxa de Entrega: à combinar*\n`;
@@ -499,7 +470,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
   };
 
   const handleAddToCart = () => {
-    if (!selectedWeight || !selectedShellType || !shell1Config.shell || !shell1Config.finishType) return;
+    if (!selectedWeight || !shell1Config.shell || !shell2Config.shell || !shell1Config.finishType || !shell2Config.finishType) return;
 
     const finishDesc = getFinishDescription();
 
@@ -508,7 +479,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
       productName: "Ovo Personalizado",
       productSlug: `personalizado-${Date.now()}`,
       imageUrl: null,
-      price: selectedWeight.price,
+      price: customTotal,
       weight: selectedWeight.weight,
       weightGrams: parseInt(selectedWeight.weight),
       flavor: `${getShellDescription()} - ${finishDesc} | ${deliveryMethod === "retirada" ? "Retirada" : "Entrega"}`,
@@ -644,67 +615,6 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
               </motion.div>
             )}
 
-            {/* Step: Shell Type (Única ou Duo) */}
-            {currentStepContent === "shellType" && (
-              <motion.div
-                key="shellType"
-                custom={1}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <h3 className="text-xl font-bold text-amber-900 mb-2">Tipo de Casca</h3>
-                <p className="text-gray-600 mb-6">Escolha se quer cascas iguais ou diferentes</p>
-
-                <div className="space-y-3">
-                  {SHELL_TYPES.map((type) => (
-                    <motion.button
-                      key={type.id}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      onClick={() => {
-                        setSelectedShellType(type);
-                        // Reset configs when changing type
-                        setShell1Config({ shell: null, finishType: null, pieces: null, filling: null });
-                        setShell2Config({ shell: null, finishType: null, pieces: null, filling: null });
-                        safeAutoAdvance(() => setStep(s => s + 1));
-                      }}
-                      className={`relative w-full p-5 rounded-xl border-2 transition-all flex items-center gap-4 ${selectedShellType?.id === type.id
-                        ? "border-amber-500 bg-amber-50"
-                        : "border-gray-200 hover:border-amber-300"
-                        }`}
-                    >
-                      <div className="flex-shrink-0">
-                        {type.id === "unica" ? (
-                          <div className="w-14 h-14 rounded-full bg-[#8B4513] border-2 border-gray-300" />
-                        ) : (
-                          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-300 flex">
-                            <div className="w-1/2 h-full bg-[#8B4513]" />
-                            <div className="w-1/2 h-full bg-[#FFF8DC]" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-bold text-amber-900 text-lg">{type.name}</div>
-                        <div className="text-sm text-gray-600">{type.description}</div>
-                      </div>
-                      {selectedShellType?.id === type.id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
-                        >
-                          <Check className="w-4 h-4 text-white" />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
             {/* Step: Shells Selection */}
             {currentStepContent === "shells" && (
               <motion.div
@@ -716,125 +626,113 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 exit="exit"
                 transition={{ duration: 0.3 }}
               >
-                {selectedShellType?.id === "duo" ? (
-                  <>
-                    <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha as Cascas</h3>
-                    <p className="text-gray-600 mb-6">Selecione dois chocolates diferentes</p>
+                <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha as Cascas</h3>
+                <p className="text-gray-600 mb-6">Selecione os chocolates para as duas metades</p>
 
-                    {/* First Shell */}
-                    <div className="mb-6">
-                      <p className="text-sm font-semibold text-amber-800 mb-3">Primeira metade:</p>
-                      <div className="space-y-2">
-                        {SHELLS.map((shell) => (
-                          <motion.button
-                            key={`shell1-${shell.id}`}
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => {
-                              setShell1Config(prev => ({ ...prev, shell }));
-                              scrollToSection(shell2Ref);
-                            }}
-                            disabled={shell2Config.shell?.id === shell.id}
-                            className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${shell1Config.shell?.id === shell.id
-                              ? "border-amber-500 bg-amber-50"
-                              : shell2Config.shell?.id === shell.id
-                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                                : "border-gray-200 hover:border-amber-300"
-                              }`}
-                          >
-                            <div
-                              className="w-10 h-10 rounded-full border-2 border-gray-300"
-                              style={{ backgroundColor: shell.color }}
-                            />
-                            <div className="text-left flex-1">
-                              <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
-                            </div>
-                            {shell1Config.shell?.id === shell.id && (
-                              <Check className="w-5 h-5 text-amber-500" />
-                            )}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
+                {/* First Shell */}
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-amber-800 mb-3">Primeira metade:</p>
+                  <div className="space-y-2">
+                    {SHELLS.map((shell) => {
+                      // Restrição do Laka Oreo (não pode repetir nas duas)
+                      const isLakaOreo = shell.id === "laka-oreo";
+                      const isOtherLakaOreo = shell2Config.shell?.id === "laka-oreo";
+                      const isDisabled = isOtherLakaOreo && isLakaOreo;
 
-                    {/* Second Shell */}
-                    <div ref={shell2Ref} tabIndex={-1} className="outline-none">
-                      <p className="text-sm font-semibold text-amber-800 mb-3">Segunda metade:</p>
-                      <div className="space-y-2">
-                        {SHELLS.map((shell) => (
-                          <motion.button
-                            key={`shell2-${shell.id}`}
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => {
-                              setShell2Config(prev => ({ ...prev, shell }));
-                              safeAutoAdvance(() => setStep(s => s + 1));
-                            }}
-                            disabled={shell1Config.shell?.id === shell.id}
-                            className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${shell2Config.shell?.id === shell.id
-                              ? "border-amber-500 bg-amber-50"
-                              : shell1Config.shell?.id === shell.id
-                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                                : "border-gray-200 hover:border-amber-300"
-                              }`}
-                          >
-                            <div
-                              className="w-10 h-10 rounded-full border-2 border-gray-300"
-                              style={{ backgroundColor: shell.color }}
-                            />
-                            <div className="text-left flex-1">
-                              <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
-                            </div>
-                            {shell2Config.shell?.id === shell.id && (
-                              <Check className="w-5 h-5 text-amber-500" />
-                            )}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-xl font-bold text-amber-900 mb-2">Escolha a Casca</h3>
-                    <p className="text-gray-600 mb-6">Selecione o tipo de chocolate</p>
-
-                    <div className="space-y-3">
-                      {SHELLS.map((shell) => (
+                      return (
                         <motion.button
-                          key={shell.id}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          key={`shell1-${shell.id}`}
+                          whileHover={{ scale: isDisabled ? 1 : 1.01 }}
+                          whileTap={{ scale: isDisabled ? 1 : 0.99 }}
                           onClick={() => {
-                            setShell1Config(prev => ({ ...prev, shell }));
-                            safeAutoAdvance(() => setStep(s => s + 1));
+                            if (isDisabled) return;
+                            setShell1Config(prev => ({
+                              ...prev,
+                              shell,
+                              // Força acabamento recheada se Laka Oreo
+                              finishType: isLakaOreo ? FINISH_TYPES.find(f => f.id === "recheada") || null : prev.finishType,
+                              pieces: isLakaOreo ? null : prev.pieces
+                            }));
+                            scrollToSection(shell2Ref);
                           }}
-                          className={`relative w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${shell1Config.shell?.id === shell.id
+                          disabled={isDisabled}
+                          className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${shell1Config.shell?.id === shell.id
                             ? "border-amber-500 bg-amber-50"
-                            : "border-gray-200 hover:border-amber-300"
+                            : isDisabled
+                              ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                              : "border-gray-200 hover:border-amber-300"
                             }`}
                         >
                           <div
-                            className="w-12 h-12 rounded-full border-2 border-gray-300"
+                            className="w-10 h-10 rounded-full border-2 border-gray-300"
                             style={{ backgroundColor: shell.color }}
                           />
                           <div className="text-left flex-1">
                             <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
-                            <div className="text-sm text-gray-600">{shell.description}</div>
+                          </div>
+                          <div className="text-sm font-bold text-amber-700 mr-2">
+                            {isLakaOreo ? "+ R$ 10,00" : "+ R$ 0,00"}
                           </div>
                           {shell1Config.shell?.id === shell.id && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
-                            >
-                              <Check className="w-4 h-4 text-white" />
-                            </motion.div>
+                            <Check className="w-5 h-5 text-amber-500" />
                           )}
                         </motion.button>
-                      ))}
-                    </div>
-                  </>
-                )}
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Second Shell */}
+                <div ref={shell2Ref} tabIndex={-1} className="outline-none">
+                  <p className="text-sm font-semibold text-amber-800 mb-3">Segunda metade:</p>
+                  <div className="space-y-2">
+                    {SHELLS.map((shell) => {
+                      const isLakaOreo = shell.id === "laka-oreo";
+                      const isOtherLakaOreo = shell1Config.shell?.id === "laka-oreo";
+                      const isDisabled = isOtherLakaOreo && isLakaOreo;
+
+                      return (
+                        <motion.button
+                          key={`shell2-${shell.id}`}
+                          whileHover={{ scale: isDisabled ? 1 : 1.01 }}
+                          whileTap={{ scale: isDisabled ? 1 : 0.99 }}
+                          onClick={() => {
+                            if (isDisabled) return;
+                            setShell2Config(prev => ({
+                              ...prev,
+                              shell,
+                              finishType: isLakaOreo ? FINISH_TYPES.find(f => f.id === "recheada") || null : prev.finishType,
+                              pieces: isLakaOreo ? null : prev.pieces
+                            }));
+                            safeAutoAdvance(() => setStep(s => s + 1));
+                          }}
+                          disabled={isDisabled}
+                          className={`relative w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${shell2Config.shell?.id === shell.id
+                            ? "border-amber-500 bg-amber-50"
+                            : isDisabled
+                              ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                              : "border-gray-200 hover:border-amber-300"
+                            }`}
+                        >
+                          <div
+                            className="w-10 h-10 rounded-full border-2 border-gray-300"
+                            style={{ backgroundColor: shell.color }}
+                          />
+                          <div className="text-left flex-1">
+                            <div className="font-bold text-amber-900 notranslate" translate="no">{shell.name}</div>
+                          </div>
+                          <div className="text-sm font-bold text-amber-700 mr-2">
+                            {isLakaOreo ? "+ R$ 10,00" : "+ R$ 0,00"}
+                          </div>
+                          {shell2Config.shell?.id === shell.id && (
+                            <Check className="w-5 h-5 text-amber-500" />
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </motion.div>
             )}
 
@@ -852,95 +750,15 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 <h3 className="text-xl font-bold text-amber-900 mb-2">Tipo de Acabamento</h3>
                 <p className="text-gray-600 mb-6">Escolha o acabamento para cada casca</p>
 
-                {selectedShellType?.id === "duo" ? (
-                  <>
-                    {/* First Shell Finish */}
-                    <div className="mb-6">
-                      <p className="text-sm font-semibold text-amber-800 mb-3">
-                        {shell1Config.shell?.name}:
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {FINISH_TYPES.map((finish) => (
-                          <motion.button
-                            key={`finish1-${finish.id}`}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              setShell1Config(prev => ({
-                                ...prev,
-                                finishType: finish,
-                                pieces: null,
-                                filling: null
-                              }));
-                              scrollToSection(finish2Ref);
-                            }}
-                            className={`relative p-4 rounded-xl border-2 transition-all ${shell1Config.finishType?.id === finish.id
-                              ? "border-amber-500 bg-amber-50"
-                              : "border-gray-200 hover:border-amber-300"
-                              }`}
-                          >
-                            {shell1Config.finishType?.id === finish.id && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute -top-2 -right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
-                              >
-                                <Check className="w-3 h-3 text-white" />
-                              </motion.div>
-                            )}
-                            <div className="font-bold text-amber-900">{finish.name}</div>
-                            <div className="text-xs text-gray-600 mt-1">{finish.description}</div>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Second Shell Finish */}
-                    <div ref={finish2Ref} tabIndex={-1} className="outline-none">
-                      <p className="text-sm font-semibold text-amber-800 mb-3">
-                        {shell2Config.shell?.name}:
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {FINISH_TYPES.map((finish) => (
-                          <motion.button
-                            key={`finish2-${finish.id}`}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              setShell2Config(prev => ({
-                                ...prev,
-                                finishType: finish,
-                                pieces: null,
-                                filling: null
-                              }));
-                              safeAutoAdvance(() => setStep(s => s + 1));
-                            }}
-                            className={`relative p-4 rounded-xl border-2 transition-all ${shell2Config.finishType?.id === finish.id
-                              ? "border-amber-500 bg-amber-50"
-                              : "border-gray-200 hover:border-amber-300"
-                              }`}
-                          >
-                            {shell2Config.finishType?.id === finish.id && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute -top-2 -right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
-                              >
-                                <Check className="w-3 h-3 text-white" />
-                              </motion.div>
-                            )}
-                            <div className="font-bold text-amber-900">{finish.name}</div>
-                            <div className="text-xs text-gray-600 mt-1">{finish.description}</div>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    {FINISH_TYPES.map((finish) => (
+                {/* First Shell Finish */}
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-amber-800 mb-3">
+                    {shell1Config.shell?.name}:
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FINISH_TYPES.filter(f => shell1Config.shell?.id === "laka-oreo" ? f.id === "recheada" : true).map((finish) => (
                       <motion.button
-                        key={finish.id}
+                        key={`finish1-${finish.id}`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
@@ -950,9 +768,9 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             pieces: null,
                             filling: null
                           }));
-                          safeAutoAdvance(() => setStep(s => s + 1));
+                          scrollToSection(finish2Ref);
                         }}
-                        className={`relative p-5 rounded-xl border-2 transition-all ${shell1Config.finishType?.id === finish.id
+                        className={`relative p-4 rounded-xl border-2 transition-all ${shell1Config.finishType?.id === finish.id
                           ? "border-amber-500 bg-amber-50"
                           : "border-gray-200 hover:border-amber-300"
                           }`}
@@ -961,17 +779,58 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
                           >
-                            <Check className="w-4 h-4 text-white" />
+                            <Check className="w-3 h-3 text-white" />
                           </motion.div>
                         )}
-                        <div className="text-lg font-bold text-amber-900">{finish.name}</div>
-                        <div className="text-sm text-gray-600 mt-1">{finish.description}</div>
+                        <div className="font-bold text-amber-900">{finish.name}</div>
+                        <div className="text-xs text-gray-600 mt-1">{finish.description}</div>
                       </motion.button>
                     ))}
                   </div>
-                )}
+                </div>
+
+                {/* Second Shell Finish */}
+                <div ref={finish2Ref} tabIndex={-1} className="outline-none">
+                  <p className="text-sm font-semibold text-amber-800 mb-3">
+                    {shell2Config.shell?.name}:
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FINISH_TYPES.filter(f => shell2Config.shell?.id === "laka-oreo" ? f.id === "recheada" : true).map((finish) => (
+                      <motion.button
+                        key={`finish2-${finish.id}`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setShell2Config(prev => ({
+                            ...prev,
+                            finishType: finish,
+                            pieces: null,
+                            filling: null
+                          }));
+                          safeAutoAdvance(() => setStep(s => s + 1));
+                        }}
+                        className={`relative p-4 rounded-xl border-2 transition-all ${shell2Config.finishType?.id === finish.id
+                          ? "border-amber-500 bg-amber-50"
+                          : "border-gray-200 hover:border-amber-300"
+                          }`}
+                      >
+                        {shell2Config.finishType?.id === finish.id && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
+                          >
+                            <Check className="w-3 h-3 text-white" />
+                          </motion.div>
+                        )}
+                        <div className="font-bold text-amber-900">{finish.name}</div>
+                        <div className="text-xs text-gray-600 mt-1">{finish.description}</div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -991,25 +850,21 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
                 {/* Shell 1 Pieces (if applicable) */}
                 {shell1Config.finishType?.id === "pedacos" && (
-                  <div className={selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos" ? "mb-6" : ""}>
-                    {selectedShellType?.id === "duo" && (
-                      <p className="text-sm font-semibold text-amber-800 mb-3">
-                        {shell1Config.shell?.name}:
-                      </p>
-                    )}
+                  <div className={shell2Config.finishType?.id === "pedacos" ? "mb-6" : ""}>
+                    <p className="text-sm font-semibold text-amber-800 mb-3">
+                      {shell1Config.shell?.name}:
+                    </p>
                     <div className="grid grid-cols-2 gap-3">
-                      {getPiecesOptionsForShell(shell1Config.shell?.id).map((piece) => (
+                      {PIECES_OPTIONS_BASE.map((piece) => (
                         <motion.button
                           key={`piece1-${piece}`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setShell1Config(prev => ({ ...prev, pieces: piece }));
-                            if (selectedShellType?.id === "duo") {
-                              scrollToSection(pieces2Ref);
-                            }
+                            scrollToSection(pieces2Ref);
                           }}
-                          className={`relative p-4 rounded-xl border-2 transition-all ${shell1Config.pieces === piece
+                          className={`relative p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${shell1Config.pieces === piece
                             ? "border-amber-500 bg-amber-50"
                             : "border-gray-200 hover:border-amber-300"
                             }`}
@@ -1024,6 +879,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             </motion.div>
                           )}
                           <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
+                          <div className="text-sm font-bold text-amber-700">+ R$ 10,00</div>
                         </motion.button>
                       ))}
                     </div>
@@ -1031,19 +887,19 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                 )}
 
                 {/* Shell 2 Pieces (if applicable) */}
-                {selectedShellType?.id === "duo" && shell2Config.finishType?.id === "pedacos" && (
+                {shell2Config.finishType?.id === "pedacos" && (
                   <div ref={pieces2Ref} tabIndex={-1} className="outline-none">
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell2Config.shell?.name}:
                     </p>
                     <div className="grid grid-cols-2 gap-3">
-                      {getPiecesOptionsForShell(shell2Config.shell?.id).map((piece) => (
+                      {PIECES_OPTIONS_BASE.map((piece) => (
                         <motion.button
                           key={`piece2-${piece}`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setShell2Config(prev => ({ ...prev, pieces: piece }))}
-                          className={`relative p-4 rounded-xl border-2 transition-all ${shell2Config.pieces === piece
+                          className={`relative p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${shell2Config.pieces === piece
                             ? "border-amber-500 bg-amber-50"
                             : "border-gray-200 hover:border-amber-300"
                             }`}
@@ -1058,6 +914,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             </motion.div>
                           )}
                           <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
+                          <div className="text-sm font-bold text-amber-700">+ R$ 10,00</div>
                         </motion.button>
                       ))}
                     </div>
@@ -1082,75 +939,89 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
                 {/* Shell 1 Filling (if applicable) */}
                 {shell1Config.finishType?.id === "recheada" && (
-                  <div className={selectedShellType?.id === "duo" && shell2Config.finishType?.id === "recheada" ? "mb-6" : ""}>
-                    {selectedShellType?.id === "duo" && (
-                      <p className="text-sm font-semibold text-amber-800 mb-3">
-                        {shell1Config.shell?.name}:
-                      </p>
-                    )}
+                  <div className={shell2Config.finishType?.id === "recheada" ? "mb-6" : ""}>
+                    <p className="text-sm font-semibold text-amber-800 mb-3">
+                      {shell1Config.shell?.name}:
+                    </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {getAvailableFillings(shell1Config.shell?.id).map((filling) => (
-                        <motion.button
-                          key={`filling1-${filling}`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            setShell1Config(prev => ({ ...prev, filling }));
-                            if (selectedShellType?.id === "duo") {
+                      {getAvailableFillings(shell1Config.shell?.id).map((filling) => {
+                        const isDisabled = shell2Config.filling === filling && filling !== "Laka Oreo com Nutella";
+                        return (
+                          <motion.button
+                            key={`filling1-${filling}`}
+                            whileHover={{ scale: isDisabled ? 1 : 1.02 }}
+                            whileTap={{ scale: isDisabled ? 1 : 0.98 }}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              setShell1Config(prev => ({ ...prev, filling }));
                               scrollToSection(filling2Ref);
-                            }
-                          }}
-                          className={`relative p-3 rounded-xl border-2 transition-all text-left ${shell1Config.filling === filling
-                            ? "border-amber-500 bg-amber-50"
-                            : "border-gray-200 hover:border-amber-300"
-                            }`}
-                        >
-                          <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
-                          {shell1Config.filling === filling && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
-                            >
-                              <Check className="w-3 h-3 text-white" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      ))}
+                            }}
+                            disabled={isDisabled}
+                            className={`relative p-3 rounded-xl border-2 transition-all text-left flex justify-between items-center ${shell1Config.filling === filling
+                              ? "border-amber-500 bg-amber-50"
+                              : isDisabled
+                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                : "border-gray-200 hover:border-amber-300"
+                              }`}
+                          >
+                            <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
+                            <span className="text-xs font-bold text-amber-700 ml-2 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
+                            {shell1Config.filling === filling && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
+                              >
+                                <Check className="w-3 h-3 text-white" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 {/* Shell 2 Filling (if applicable) */}
-                {selectedShellType?.id === "duo" && shell2Config.finishType?.id === "recheada" && (
+                {shell2Config.finishType?.id === "recheada" && (
                   <div ref={filling2Ref} tabIndex={-1} className="outline-none">
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell2Config.shell?.name}:
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {getAvailableFillings(shell2Config.shell?.id).map((filling) => (
-                        <motion.button
-                          key={`filling2-${filling}`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setShell2Config(prev => ({ ...prev, filling }))}
-                          className={`relative p-3 rounded-xl border-2 transition-all text-left ${shell2Config.filling === filling
-                            ? "border-amber-500 bg-amber-50"
-                            : "border-gray-200 hover:border-amber-300"
-                            }`}
-                        >
-                          <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
-                          {shell2Config.filling === filling && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
-                            >
-                              <Check className="w-3 h-3 text-white" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      ))}
+                      {getAvailableFillings(shell2Config.shell?.id).map((filling) => {
+                        const isDisabled = shell1Config.filling === filling && filling !== "Laka Oreo com Nutella";
+                        return (
+                          <motion.button
+                            key={`filling2-${filling}`}
+                            whileHover={{ scale: isDisabled ? 1 : 1.02 }}
+                            whileTap={{ scale: isDisabled ? 1 : 0.98 }}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              setShell2Config(prev => ({ ...prev, filling }));
+                            }}
+                            disabled={isDisabled}
+                            className={`relative p-3 rounded-xl border-2 transition-all text-left flex justify-between items-center ${shell2Config.filling === filling
+                              ? "border-amber-500 bg-amber-50"
+                              : isDisabled
+                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                : "border-gray-200 hover:border-amber-300"
+                              }`}
+                          >
+                            <span className="font-medium text-amber-900 notranslate" translate="no">{filling}</span>
+                            <span className="text-xs font-bold text-amber-700 ml-2 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
+                            {shell2Config.filling === filling && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center"
+                              >
+                                <Check className="w-3 h-3 text-white" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1378,12 +1249,6 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <span className="font-semibold text-amber-900 notranslate" translate="no">{selectedWeight?.weight}</span>
                   </div>
 
-                  {/* Tipo */}
-                  <div className="flex justify-between items-center pb-3 border-b border-amber-200">
-                    <span className="text-gray-600">Tipo</span>
-                    <span className="font-semibold text-amber-900 notranslate" translate="no">{selectedShellType?.name}</span>
-                  </div>
-
                   {/* Casca(s) */}
                   <div className="flex justify-between items-center pb-3 border-b border-amber-200">
                     <span className="text-gray-600">Casca</span>
@@ -1391,68 +1256,45 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                   </div>
 
                   {/* Detalhes da Casca 1 */}
-                  {selectedShellType?.id === "duo" ? (
-                    <>
-                      <div className="bg-white rounded-lg p-3 space-y-2">
-                        <div className="text-sm font-semibold text-amber-800">Primeira metade (<span className="notranslate" translate="no">{shell1Config.shell?.name}</span>):</div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-sm">Acabamento</span>
-                          <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.finishType?.name}</span>
-                        </div>
-                        {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 text-sm">Pedaços</span>
-                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.pieces}</span>
-                          </div>
-                        )}
-                        {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 text-sm">Recheio</span>
-                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.filling}</span>
-                          </div>
-                        )}
+                  <div className="bg-white rounded-lg p-3 space-y-2">
+                    <div className="text-sm font-semibold text-amber-800">Primeira metade (<span className="notranslate" translate="no">{shell1Config.shell?.name}</span>):</div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">Acabamento</span>
+                      <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.finishType?.name}</span>
+                    </div>
+                    {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Pedaços</span>
+                        <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.pieces}</span>
                       </div>
+                    )}
+                    {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Recheio</span>
+                        <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell1Config.filling}</span>
+                      </div>
+                    )}
+                  </div>
 
-                      <div className="bg-white rounded-lg p-3 space-y-2">
-                        <div className="text-sm font-semibold text-amber-800">Segunda metade (<span className="notranslate" translate="no">{shell2Config.shell?.name}</span>):</div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-sm">Acabamento</span>
-                          <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.finishType?.name}</span>
-                        </div>
-                        {shell2Config.finishType?.id === "pedacos" && shell2Config.pieces && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 text-sm">Pedaços</span>
-                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.pieces}</span>
-                          </div>
-                        )}
-                        {shell2Config.finishType?.id === "recheada" && shell2Config.filling && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 text-sm">Recheio</span>
-                            <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.filling}</span>
-                          </div>
-                        )}
+                  <div className="bg-white rounded-lg p-3 space-y-2">
+                    <div className="text-sm font-semibold text-amber-800">Segunda metade (<span className="notranslate" translate="no">{shell2Config.shell?.name}</span>):</div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">Acabamento</span>
+                      <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.finishType?.name}</span>
+                    </div>
+                    {shell2Config.finishType?.id === "pedacos" && shell2Config.pieces && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Pedaços</span>
+                        <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.pieces}</span>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center pb-3 border-b border-amber-200">
-                        <span className="text-gray-600">Acabamento</span>
-                        <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.finishType?.name}</span>
+                    )}
+                    {shell2Config.finishType?.id === "recheada" && shell2Config.filling && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">Recheio</span>
+                        <span className="font-medium text-amber-900 text-sm notranslate" translate="no">{shell2Config.filling}</span>
                       </div>
-                      {shell1Config.finishType?.id === "pedacos" && shell1Config.pieces && (
-                        <div className="flex justify-between items-center pb-3 border-b border-amber-200">
-                          <span className="text-gray-600">Pedaços</span>
-                          <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.pieces}</span>
-                        </div>
-                      )}
-                      {shell1Config.finishType?.id === "recheada" && shell1Config.filling && (
-                        <div className="flex justify-between items-center pb-3 border-b border-amber-200">
-                          <span className="text-gray-600">Recheio</span>
-                          <span className="font-semibold text-amber-900 notranslate" translate="no">{shell1Config.filling}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
+                    )}
+                  </div>
 
                   {/* Info Entrega/Retirada */}
                   <div className="bg-white rounded-lg p-3 space-y-2 border border-amber-100">
@@ -1538,7 +1380,6 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
             <div className="flex items-center justify-between text-sm">
               <div className="text-amber-800 truncate mr-2">
                 {selectedWeight && <span className="notranslate" translate="no">{selectedWeight.weight}</span>}
-                {selectedShellType && <span className="notranslate" translate="no"> • {selectedShellType.name}</span>}
                 {shell1Config.shell && <span className="notranslate" translate="no"> • {getShellDescription()}</span>}
                 {shell1Config.finishType && (
                   <span className="notranslate" translate="no"> • {shell1Config.finishType.name}</span>

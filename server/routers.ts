@@ -202,14 +202,18 @@ export const appRouter = router({
           price: z.number(),
           quantity: z.number(),
           flavor: z.string().optional(),
-          shell: z.enum(['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']).optional(),
+          shell: z.enum(['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco', 'Laka Oreo']).optional(),
+          finish: z.string().optional(),
+          filling: z.string().optional(),
         })).refine(items => {
-          // Strict validation: if shell is present, product should be capable of having a shell.
-          // However, we don't have DB access inside zod easily to check category.
-          // We will trust the types for now but strip/ignore shell if needed in logic,
-          // or we rely on the implementation plan's direction to reject/strip.
-          // Plan said: "Reject shell if product is NOT Ovos Trufados".
-          // Since we can't check DB here synchronously, we might need to do it in the mutation handler.
+          for (const item of items) {
+            if (item.filling === "Laka Oreo") {
+              throw new Error("ERRO_ESTRUTURAL_ONTOLOGIA");
+            }
+            if (item.finish === "Recheada" && (!item.filling || item.filling === "Seguir sem recheio")) {
+              throw new Error("ERRO_SEMANTICO_RECHEIO");
+            }
+          }
           return true;
         }),
         totalAmount: z.string(),
