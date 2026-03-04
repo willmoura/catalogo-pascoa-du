@@ -14,12 +14,12 @@ const KIT_CONFIG = {
     flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella"]
   },
   13: {
-    unitPrice: 99.90,
+    unitPrice: 89.90,
     requiredCount: 6,
     flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella", "Sensação", "Laka Oreo com Nutella"]
   },
   34: {
-    unitPrice: 199.90,
+    unitPrice: 169.90,
     requiredCount: 3,
     flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella", "Sensação", "Laka Oreo com Nutella"]
   }
@@ -547,7 +547,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {(isOvinhos
-                            ? ['Ao Leite', 'Branco', 'Laka Oreo']
+                            ? ['Ao Leite', 'Branco']
                             : product.name.toLowerCase().includes('laka oreo')
                               ? ['Branco']
                               : ['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']
