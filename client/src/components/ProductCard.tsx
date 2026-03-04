@@ -42,7 +42,10 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             imageId={product.imageUrl}
             alt={product.name}
             className="w-full h-full bg-secondary/30"
-            imageClassName="w-full h-full transition-transform duration-500 group-hover:scale-110 object-contain"
+            imageClassName={`w-full h-full transition-transform duration-500 object-contain ${product.slug === 'pintadinho' || product.name === 'Pintadinho'
+                ? 'scale-[0.75] group-hover:scale-[0.85]'
+                : 'group-hover:scale-110'
+              }`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
