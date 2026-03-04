@@ -1,0 +1,60 @@
+{
+  "local": {
+    "product": {
+      "id": 40,
+      "categoryId": 7,
+      "name": "Ovinhos",
+      "slug": "ovinhos",
+      "description": "Deliciosos ovinhos recheados com os melhores sabores, casca a sua escolha.",
+      "shortDescription": "Ovinhos recheados personalizados",
+      "imageUrl": "pd-ovinhos-catalogo",
+      "galleryImages": null,
+      "isActive": 1,
+      "isFeatured": 1,
+      "displayOrder": 0,
+      "createdAt": "2026-03-04T11:29:24.000Z",
+      "updatedAt": "2026-03-04T11:29:29.000Z"
+    },
+    "prices": [
+      {
+        "id": 328,
+        "productId": 40,
+        "weight": "Unidade",
+        "shell": null,
+        "weightGrams": 50,
+        "price": "15.00",
+        "compareAtPrice": null,
+        "isAvailable": 1,
+        "createdAt": "2026-03-04T11:29:24.000Z",
+        "updatedAt": "2026-03-04T11:29:24.000Z"
+      }
+    ],
+    "flavors": [
+      {
+        "id": 26,
+        "name": "Nutella Crocante"
+      },
+      {
+        "id": 12,
+        "name": "Franui"
+      },
+      {
+        "id": 7,
+        "name": "Pistache"
+      },
+      {
+        "id": 5,
+        "name": "Ovomaltine"
+      },
+      {
+        "id": 19,
+        "name": "Ninho com Nutella"
+      },
+      {
+        "id": 11,
+        "name": "Prestígio"
+      }
+    ]
+  },
+  "prod": null
+}
