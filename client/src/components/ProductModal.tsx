@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 const KIT_CONFIG = {
   12: {
-    unitPrice: 69.90,
+    unitPrice: 49.90,
     requiredCount: 4,
     flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella"]
   },
@@ -79,6 +79,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
   const [isZoomed, setIsZoomed] = useState(false);
 
   const isOvoDeColher = product?.id === 35;
+  const isOvinhos = product?.slug === 'ovinhos';
   const isKit = product ? [12, 13, 34].includes(product.id) : false;
   const kitConfig = isKit && product ? KIT_CONFIG[product.id as keyof typeof KIT_CONFIG] : null;
 
@@ -127,9 +128,11 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       // Default behavior for other products
       let defaultShell = "";
 
-      if (product.category?.slug === 'ovos-trufados' && !isOvoDeColher) {
+      if ((product.category?.slug === 'ovos-trufados' || isOvinhos) && !isOvoDeColher) {
         if (product.name.toLowerCase().includes('laka oreo')) {
           defaultShell = "Branco";
+        } else if (isOvinhos) {
+          defaultShell = "";
         } else {
           defaultShell = "Ao Leite";
         }
@@ -194,6 +197,20 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
       }
     }
   }, [selectedShell, product, selectedPrice]);
+
+  // Effect to auto-select "Laka Oreo com Nutella" if casca is "Laka Oreo" on Ovinhos
+  // and remove it if casca is Ao Leite or Branco
+  useEffect(() => {
+    if (isOvinhos && selectedShell === 'Laka Oreo' && product) {
+      const lakaOreoFlavor = product.flavors.find(f => f.flavor.name.toLowerCase().includes('laka oreo com nutella'));
+      if (lakaOreoFlavor && selectedFlavor?.flavor.id !== lakaOreoFlavor.flavor.id) {
+        setSelectedFlavor(lakaOreoFlavor);
+      }
+    } else if (isOvinhos && selectedShell !== 'Laka Oreo' && product && selectedFlavor?.flavor.name.toLowerCase().includes('laka oreo com nutella')) {
+      setSelectedFlavor(null);
+    }
+  }, [selectedShell, isOvinhos, product, selectedFlavor]);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -221,8 +238,8 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
         return;
       }
     }
-    // 2. Validation for Ovo de Colher
-    else if (isOvoDeColher) {
+    // 2. Validation for Ovo de Colher or Ovinhos
+    else if (isOvoDeColher || isOvinhos) {
       if (!selectedShell) {
         toast.error("Selecione a casca");
         return;
@@ -279,15 +296,15 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
         productName: product.name,
         productSlug: product.slug,
         imageUrl: product.imageUrl,
-        weight: formattedWeight,
+        weight: isOvinhos ? 'Unidade' : formattedWeight,
         weightGrams: selectedPrice.weightGrams,
         price: parseFloat(selectedPrice.price) + (selectedFlavor ? parseFloat(selectedFlavor.additionalPrice || "0") : 0),
         quantity,
         flavor: selectedFlavor?.flavor.name,
         flavorId: selectedFlavor?.flavor.id,
-        // Specific mapping for Ovo de Colher
-        shell: isOvoDeColher ? selectedShell : (product.category?.slug === 'ovos-trufados' ? selectedShell : undefined),
-        flavors: isOvoDeColher && selectedFlavor ? [selectedFlavor.flavor] : undefined // Pass as array for backend compatibility if needed, though flavor/flavorId is main
+        // Specific mapping
+        shell: isOvoDeColher || isOvinhos ? selectedShell : (product.category?.slug === 'ovos-trufados' ? selectedShell : undefined),
+        flavors: (isOvoDeColher || isOvinhos) && selectedFlavor ? [selectedFlavor.flavor] : undefined // Pass as array for backend compatibility if needed, though flavor/flavorId is main
       };
     }
 
@@ -523,15 +540,17 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                     )}
 
                     {/* Shell Selection - for Ovos Trufados OR Ovo de Colher. HIDE for Kits. */}
-                    {!isKit && (product.category?.slug === 'ovos-trufados' || isOvoDeColher) && (
+                    {!isKit && (product.category?.slug === 'ovos-trufados' || isOvoDeColher || isOvinhos) && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
-                          Escolha a Casca {isOvoDeColher && <span className="text-red-500">*</span>}
+                          Escolha a Casca {(isOvoDeColher || isOvinhos) && <span className="text-red-500">*</span>}
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                          {(product.name.toLowerCase().includes('laka oreo')
-                            ? ['Branco']
-                            : ['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']
+                          {(isOvinhos
+                            ? ['Ao Leite', 'Branco', 'Laka Oreo']
+                            : product.name.toLowerCase().includes('laka oreo')
+                              ? ['Branco']
+                              : ['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']
                           ).map((shell) => (
                             <motion.button
                               key={shell}
@@ -620,14 +639,20 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                     )}
 
                     {/* Flavor Selection */}
-                    {/* Special Handling for Ovo de Colher (ID 35) - Single Select / Radio */}
-                    {!isKit && isOvoDeColher && product.flavors.length > 0 && (
+                    {/* Special Handling for Ovo de Colher (ID 35) and Ovinhos - Single Select / Radio */}
+                    {!isKit && (isOvoDeColher || isOvinhos) && product.flavors.length > 0 && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
                           Sabor do Recheio <span className="text-red-500">*</span>
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                          {product.flavors.map((flavorItem) => (
+                          {(isOvinhos
+                            ? (selectedShell === 'Laka Oreo'
+                              ? product.flavors.filter(f => f.flavor.name.toLowerCase().includes('laka oreo com nutella'))
+                              : product.flavors.filter(f => !f.flavor.name.toLowerCase().includes('laka oreo com nutella'))
+                            )
+                            : product.flavors
+                          ).map((flavorItem) => (
                             <motion.button
                               key={flavorItem.flavor.id}
                               whileHover={{ scale: 1.02 }}
@@ -648,7 +673,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                     )}
 
                     {/* Normal Flavor Selection for other products */}
-                    {!isKit && !isOvoDeColher && product.flavors.length > 0 && !product.slug.includes('mini-ovos') && (
+                    {!isKit && !isOvoDeColher && !isOvinhos && product.flavors.length > 0 && !product.slug.includes('mini-ovos') && (
                       <div>
                         <h3 className="font-semibold text-foreground mb-3">
                           Sabor do Recheio
