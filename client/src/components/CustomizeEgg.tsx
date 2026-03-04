@@ -854,7 +854,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell1Config.shell?.name}:
                     </p>
-                    <div className="grid grid-cols-2 gap-3 auto-rows-fr items-stretch">
+                    <div className="grid grid-cols-2 gap-3">
                       {PIECES_OPTIONS_BASE.map((piece) => (
                         <motion.button
                           key={`piece1-${piece}`}
@@ -864,7 +864,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                             setShell1Config(prev => ({ ...prev, pieces: piece }));
                             scrollToSection(pieces2Ref);
                           }}
-                          className={`relative p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 h-full min-h-0 ${shell1Config.pieces === piece
+                          className={`relative p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 w-full h-[90px] ${shell1Config.pieces === piece
                             ? "border-amber-500 bg-amber-50"
                             : "border-gray-200 hover:border-amber-300"
                             }`}
@@ -878,8 +878,8 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               <Check className="w-3 h-3 text-white" />
                             </motion.div>
                           )}
-                          <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
-                          <div className="text-sm font-bold text-amber-700">+ R$ 10,00</div>
+                          <div className="font-medium text-amber-900 notranslate text-center leading-tight line-clamp-2 w-full" translate="no">{piece}</div>
+                          <div className="text-xs font-bold text-amber-700 mt-1 shrink-0">+ R$ 10,00</div>
                         </motion.button>
                       ))}
                     </div>
@@ -892,14 +892,14 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell2Config.shell?.name}:
                     </p>
-                    <div className="grid grid-cols-2 gap-3 auto-rows-fr items-stretch">
+                    <div className="grid grid-cols-2 gap-3">
                       {PIECES_OPTIONS_BASE.map((piece) => (
                         <motion.button
                           key={`piece2-${piece}`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setShell2Config(prev => ({ ...prev, pieces: piece }))}
-                          className={`relative p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 h-full min-h-0 ${shell2Config.pieces === piece
+                          className={`relative p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 w-full h-[90px] ${shell2Config.pieces === piece
                             ? "border-amber-500 bg-amber-50"
                             : "border-gray-200 hover:border-amber-300"
                             }`}
@@ -913,8 +913,8 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               <Check className="w-3 h-3 text-white" />
                             </motion.div>
                           )}
-                          <div className="font-bold text-amber-900 notranslate" translate="no">{piece}</div>
-                          <div className="text-sm font-bold text-amber-700">+ R$ 10,00</div>
+                          <div className="font-medium text-amber-900 notranslate text-center leading-tight line-clamp-2 w-full" translate="no">{piece}</div>
+                          <div className="text-xs font-bold text-amber-700 mt-1 shrink-0">+ R$ 10,00</div>
                         </motion.button>
                       ))}
                     </div>
@@ -943,7 +943,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell1Config.shell?.name}:
                     </p>
-                    <div className="grid grid-cols-2 gap-2 auto-rows-fr items-stretch">
+                    <div className="grid grid-cols-2 gap-2">
                       {getAvailableFillings(shell1Config.shell?.id).map((filling) => {
                         const isDisabled = shell2Config.filling === filling && filling !== "Laka Oreo com Nutella";
                         return (
@@ -957,15 +957,15 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               scrollToSection(filling2Ref);
                             }}
                             disabled={isDisabled}
-                            className={`relative p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-center h-full min-h-0 ${shell1Config.filling === filling
+                            className={`relative p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center w-full h-[90px] ${shell1Config.filling === filling
                               ? "border-amber-500 bg-amber-50"
                               : isDisabled
                                 ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
                                 : "border-gray-200 hover:border-amber-300"
                               }`}
                           >
-                            <span className="font-medium text-amber-900 notranslate line-clamp-2 leading-tight" translate="no">{filling}</span>
-                            <span className="text-xs font-bold text-amber-700 mt-1 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
+                            <span className="font-medium text-amber-900 notranslate text-center leading-tight line-clamp-2 w-full" translate="no">{filling}</span>
+                            <span className="text-xs font-bold text-amber-700 mt-1 shrink-0 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
                             {shell1Config.filling === filling && (
                               <motion.div
                                 initial={{ scale: 0 }}
@@ -988,7 +988,7 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                     <p className="text-sm font-semibold text-amber-800 mb-3">
                       {shell2Config.shell?.name}:
                     </p>
-                    <div className="grid grid-cols-2 gap-2 auto-rows-fr items-stretch">
+                    <div className="grid grid-cols-2 gap-2">
                       {getAvailableFillings(shell2Config.shell?.id).map((filling) => {
                         const isDisabled = shell1Config.filling === filling && filling !== "Laka Oreo com Nutella";
                         return (
@@ -1001,15 +1001,15 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
                               setShell2Config(prev => ({ ...prev, filling }));
                             }}
                             disabled={isDisabled}
-                            className={`relative p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-center h-full min-h-0 ${shell2Config.filling === filling
+                            className={`relative p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center w-full h-[90px] ${shell2Config.filling === filling
                               ? "border-amber-500 bg-amber-50"
                               : isDisabled
                                 ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
                                 : "border-gray-200 hover:border-amber-300"
                               }`}
                           >
-                            <span className="font-medium text-amber-900 notranslate line-clamp-2 leading-tight" translate="no">{filling}</span>
-                            <span className="text-xs font-bold text-amber-700 mt-1 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
+                            <span className="font-medium text-amber-900 notranslate text-center leading-tight line-clamp-2 w-full" translate="no">{filling}</span>
+                            <span className="text-xs font-bold text-amber-700 mt-1 shrink-0 whitespace-nowrap">+ R$ {getFillingPrice(filling).toFixed(2).replace('.', ',')}</span>
                             {shell2Config.filling === filling && (
                               <motion.div
                                 initial={{ scale: 0 }}
