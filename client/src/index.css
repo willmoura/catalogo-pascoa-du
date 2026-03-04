@@ -77,7 +77,7 @@
   --sidebar-accent-foreground: oklch(0.35 0.08 55);
   --sidebar-border: oklch(0.88 0.02 85);
   --sidebar-ring: oklch(0.45 0.12 55);
-  
+
   /* Custom chocolate colors */
   --chocolate: oklch(0.35 0.1 50);
   --chocolate-light: oklch(0.55 0.12 55);
@@ -125,13 +125,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -143,17 +146,20 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+
   /* Hide scrollbar but keep functionality */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
 }
 
 @layer components {
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *
@@ -171,7 +177,8 @@
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
+    /* 16px - mobile padding */
     padding-right: 1rem;
   }
 
@@ -182,27 +189,32 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
+      /* 24px - tablet padding */
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
+      /* 32px - desktop padding */
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
+      /* Standard content width */
     }
   }
 }
 
 @layer utilities {
+
   /* Glass effect */
   .glass {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
+
   /* Gradient text */
   .gradient-text {
     background: linear-gradient(135deg, var(--chocolate) 0%, var(--gold) 100%);
@@ -210,6 +222,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
   /* Safe area padding for mobile */
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 1rem);
@@ -222,9 +235,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1.5rem;
 }
+
 .product-image img {
   max-width: 100%;
   max-height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
