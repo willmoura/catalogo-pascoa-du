@@ -194,6 +194,9 @@ export default function CartDrawer() {
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
       window.open(whatsappUrl, "_blank");
       toast.success("Redirecionando para WhatsApp...");
+      clearCart();
+      setIsOpen(false);
+      setCheckoutStep('review');
     }
   };
 
