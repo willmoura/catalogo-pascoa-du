@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
 
 export interface CartItem {
   productId: number;
@@ -69,7 +71,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
+  const { trackEvent } = useAnalytics();
+
   const addItem = (newItem: CartItem) => {
+    trackEvent("add_to_cart", {
+      currency: "BRL",
+      value: newItem.price * newItem.quantity,
+      items: [
+        {
+          item_id: newItem.productId,
+          item_name: newItem.productName,
+          quantity: newItem.quantity,
+          price: newItem.price
+        }
+      ]
+    });
     // Normalize shell string (trim)
     if (newItem.shell) {
       newItem.shell = newItem.shell.trim() as any;
@@ -106,6 +122,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (productId: number, weight: string, flavorId?: number, shell?: string, variantKey?: string) => {
+    const itemToRemove = items.find(i =>
+      (variantKey ? i.variantKey === variantKey : i.productId === productId && i.weight === weight && i.flavorId === flavorId && i.shell === shell)
+    );
+
+    if (itemToRemove) {
+      trackEvent("remove_from_cart", {
+        currency: "BRL",
+        value: itemToRemove.price * itemToRemove.quantity,
+        items: [
+          {
+            item_id: itemToRemove.productId,
+            item_name: itemToRemove.productName,
+            quantity: itemToRemove.quantity,
+            price: itemToRemove.price
+          }
+        ]
+      });
+    }
+
     setItems((prev) =>
       prev.filter(
         (item) => {

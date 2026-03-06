@@ -20,7 +20,25 @@ interface ProductCardProps {
   onClick: () => void;
 }
 
+import { useAnalytics } from "@/hooks/useAnalytics";
+
 export default function ProductCard({ product, onClick }: ProductCardProps) {
+  const { trackEvent } = useAnalytics();
+
+  const handleCardClick = () => {
+    trackEvent("view_item", {
+      currency: "BRL",
+      value: product.prices.length > 0 ? Math.min(...product.prices.map((p) => parseFloat(p.price))) : 0,
+      items: [
+        {
+          item_id: product.id,
+          item_name: product.name,
+        }
+      ]
+    });
+    onClick();
+  };
+
   const lowestPrice = product.prices.length > 0
     ? Math.min(...product.prices.map((p) => parseFloat(p.price)))
     : 0;
@@ -33,7 +51,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -4 }}
       className="group relative bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       {/* Image Container */}
       <div className="relative product-image overflow-hidden bg-secondary/30">
@@ -43,8 +61,8 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             alt={product.name}
             className="w-full h-full bg-secondary/30"
             imageClassName={`w-full h-full transition-transform duration-500 object-contain ${product.slug === 'pintadinho' || product.name === 'Pintadinho'
-                ? 'scale-[0.75] group-hover:scale-[0.85]'
-                : 'group-hover:scale-110'
+              ? 'scale-[0.75] group-hover:scale-[0.85]'
+              : 'group-hover:scale-110'
               }`}
           />
         ) : (
@@ -72,7 +90,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             className="rounded-full bg-primary shadow-lg"
             onClick={(e) => {
               e.stopPropagation();
-              onClick();
+              handleCardClick();
             }}
           >
             <Plus className="w-5 h-5" />

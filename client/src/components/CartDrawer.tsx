@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
 import { ResponsiveImage } from "./ui/responsive-image";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
 
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || "5511999999999";
 
@@ -37,6 +39,8 @@ export default function CartDrawer() {
     setCheckoutStep,
     openCheckoutHub
   } = useCart();
+
+  const { trackEvent } = useAnalytics();
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -165,6 +169,17 @@ export default function CartDrawer() {
       if (!selectedPaymentMethod) { toast.error("Selecione o pagamento"); scrollToSection(paymentRef); return; }
       return;
     }
+
+    trackEvent("purchase", {
+      currency: "BRL",
+      value: finalTotal,
+      items: items.map(item => ({
+        item_id: item.productId,
+        item_name: item.productName,
+        price: item.price,
+        quantity: item.quantity
+      }))
+    });
 
     try {
       await createOrderMutation.mutateAsync({
@@ -485,7 +500,19 @@ export default function CartDrawer() {
                   <Button
                     size="lg"
                     className="w-full rounded-xl font-bold text-lg h-12"
-                    onClick={() => openCheckoutHub()}
+                    onClick={() => {
+                      trackEvent("begin_checkout", {
+                        currency: "BRL",
+                        value: totalPrice,
+                        items: items.map(item => ({
+                          item_id: item.productId,
+                          item_name: item.productName,
+                          price: item.price,
+                          quantity: item.quantity
+                        }))
+                      });
+                      openCheckoutHub();
+                    }}
                   >
                     Confirmar Pedido
                   </Button>

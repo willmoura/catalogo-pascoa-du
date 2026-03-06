@@ -9,7 +9,20 @@ import Home from "@/pages/Home";
 import MediaManager from "@/pages/admin/MediaManager";
 import BulkImageMigration from "@/pages/admin/BulkImageMigration";
 
+import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
 function Router() {
+  const [location] = useLocation();
+  const { trackEvent } = useAnalytics();
+
+  useEffect(() => {
+    trackEvent("page_view", {
+      page_path: location,
+    });
+  }, [location]);
+
   return (
     <Switch>
       <Route path={"/"} component={Home} />
