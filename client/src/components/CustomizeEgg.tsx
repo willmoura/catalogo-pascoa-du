@@ -29,7 +29,7 @@ const PIECES_OPTIONS_BASE = ["Avelã", "Castanha de Caju"];
 
 const FILLINGS_20 = [
   "Franuí", "Ferrero Rocher", "Maracujá com Nutella", "Ovomaltine",
-  "Alpino", "Kinder Bueno", "Ninho com Nutella", "Strogonoff de Nozes", "Sensação"
+  "Alpino", "Kinder Bueno", "Ninho com Nutella", "Strogonoff de Nozes", "Sensação", "Nutella"
 ];
 
 const FILLINGS_10 = [
@@ -224,7 +224,11 @@ export function CustomizeEgg({ isOpen, onClose }: CustomizeEggProps) {
 
   const getAvailableFillings = (shellId: string | undefined) => {
     if (shellId === "laka-oreo") return ["Laka Oreo com Nutella"];
-    return [...FILLINGS_20, ...FILLINGS_10];
+    let base = [...FILLINGS_20, ...FILLINGS_10];
+    if (shellId !== "ao-leite" && shellId !== "meio-amargo") {
+      base = base.filter(f => f !== "Nutella");
+    }
+    return base;
   };
 
   // Limpar recheio inválido se a condição da casca mudar
