@@ -108,15 +108,18 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
               <ChevronDown className="w-4 h-4 shrink-0" />
             </Button>
             {onCustomize && (
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full min-w-0 rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap overflow-hidden"
-                onClick={onCustomize}
-              >
-                <Sparkles className="w-4 h-4 shrink-0" />
-                <span className="truncate">Monte seu Ovo</span>
-              </Button>
+              <div className="relative w-full sm:flex-1">
+                <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" style={{ animationDuration: '2.5s' }} />
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="relative w-full min-w-0 rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap bg-background"
+                  onClick={onCustomize}
+                >
+                  <Sparkles className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Monte seu Ovo</span>
+                </Button>
+              </div>
             )}
           </motion.div>
         </motion.div>

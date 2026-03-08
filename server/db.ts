@@ -156,7 +156,7 @@ export async function getAllProducts() {
 
   return db.select().from(products)
     .where(eq(products.isActive, true))
-    .orderBy(asc(products.displayOrder));
+    .orderBy(desc(products.isFeatured), asc(products.displayOrder));
 }
 
 export async function getProductsByCategory(categoryId: number) {
@@ -165,7 +165,7 @@ export async function getProductsByCategory(categoryId: number) {
 
   return db.select().from(products)
     .where(and(eq(products.categoryId, categoryId), eq(products.isActive, true)))
-    .orderBy(asc(products.displayOrder));
+    .orderBy(desc(products.isFeatured), asc(products.displayOrder));
 }
 
 export async function getProductBySlug(slug: string) {
@@ -213,7 +213,7 @@ export async function searchProducts(query: string) {
         like(products.shortDescription, searchTerm)
       )
     ))
-    .orderBy(asc(products.displayOrder));
+    .orderBy(desc(products.isFeatured), asc(products.displayOrder));
 }
 
 export async function createProduct(data: InsertProduct) {
