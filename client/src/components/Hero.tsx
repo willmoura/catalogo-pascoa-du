@@ -101,14 +101,14 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
           >
             <Button
               size="lg"
-              className="w-full min-w-0 rounded-full px-8 gap-2 shadow-lg shadow-primary/25 whitespace-nowrap overflow-hidden"
+              className="w-full sm:w-[200px] min-w-0 rounded-full px-8 gap-2 shadow-lg shadow-primary/25 whitespace-nowrap overflow-hidden"
               onClick={onScrollToProducts}
             >
               <span className="truncate">Ver Catálogo</span>
               <ChevronDown className="w-4 h-4 shrink-0" />
             </Button>
             {onCustomize && (
-              <div className="relative w-full sm:flex-1">
+              <div className="relative w-full sm:w-[200px]">
                 <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" style={{ animationDuration: '2.5s' }} />
                 <Button
                   size="lg"
