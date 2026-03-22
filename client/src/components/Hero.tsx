@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 
 interface HeroProps {
   onScrollToProducts: () => void;
-  onCustomize?: () => void;
 }
 
-export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
+export default function Hero({ onScrollToProducts }: HeroProps) {
   return (
     <section className="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--cream)] via-background to-secondary/30">
       {/* Decorative Elements */}
@@ -107,20 +106,7 @@ export default function Hero({ onScrollToProducts, onCustomize }: HeroProps) {
               <span className="truncate">Ver Catálogo</span>
               <ChevronDown className="w-4 h-4 shrink-0" />
             </Button>
-            {onCustomize && (
-              <div className="relative w-full sm:w-[200px]">
-                <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" style={{ animationDuration: '2.5s' }} />
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="relative w-full min-w-0 rounded-full px-8 gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap bg-background"
-                  onClick={onCustomize}
-                >
-                  <Sparkles className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Monte seu Ovo</span>
-                </Button>
-              </div>
-            )}
+
           </motion.div>
         </motion.div>
 
