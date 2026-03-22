@@ -550,7 +550,7 @@ export default function ProductModal({ product, isOpen, onClose, isLoading = fal
                             ? ['Ao Leite', 'Branco']
                             : product.name.toLowerCase().includes('laka oreo')
                               ? ['Branco']
-                              : ['Ao Leite', 'Meio a Meio', 'Meio Amargo', 'Branco']
+                              : ['Ao Leite', 'Meio a Meio', 'Branco']
                           ).map((shell) => (
                             <motion.button
                               key={shell}
