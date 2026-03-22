@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const KIT_CONFIG = {
   12: {
     unitPrice: 49.90,
-    requiredCount: 4,
+    requiredCount: 3,
     flavors: ["Ovomaltine", "Kinder Bueno", "Ferrero Rocher", "Ninho com Nutella"]
   },
   13: {
