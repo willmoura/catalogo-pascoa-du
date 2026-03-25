@@ -16,9 +16,10 @@ interface DatePickerProps {
     date?: Date
     setDate: (date: Date | undefined) => void
     placeholder?: string
+    disabled?: (date: Date) => boolean
 }
 
-export function DatePicker({ date, setDate, placeholder = "Selecione uma data" }: DatePickerProps) {
+export function DatePicker({ date, setDate, placeholder = "Selecione uma data", disabled }: DatePickerProps) {
     const [isOpen, setIsOpen] = React.useState(false)
 
     return (
@@ -43,6 +44,7 @@ export function DatePicker({ date, setDate, placeholder = "Selecione uma data" }
                         setDate(selectedDate)
                         setIsOpen(false)
                     }}
+                    disabled={disabled}
                     initialFocus
                     locale={ptBR}
                 />

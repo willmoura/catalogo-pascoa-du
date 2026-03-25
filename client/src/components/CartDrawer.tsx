@@ -499,6 +499,16 @@ export default function CartDrawer() {
                                  setErrors(prev => ({...prev, deliveryDate: false}));
                               }
                             }}
+                            disabled={(date) => {
+                              if (deliveryMethod === 'retirada') {
+                                const y = date.getFullYear();
+                                const m = date.getMonth();
+                                const d = date.getDate();
+                                return !(y === 2026 && m === 3 && (d === 2 || d === 3));
+                              }
+                              // For non-retirada, just disable past dates
+                              return date < new Date(new Date().setHours(0, 0, 0, 0));
+                            }}
                           />
                         </div>
                       </motion.div>
