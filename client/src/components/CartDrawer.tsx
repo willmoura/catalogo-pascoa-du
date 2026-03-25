@@ -197,7 +197,7 @@ export default function CartDrawer() {
 
       const message = formatWhatsAppMessage();
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      window.open(whatsappUrl, "_blank");
+      window.location.href = whatsappUrl;
 
       toast.success("Pedido enviado! Finalize pelo WhatsApp.");
       clearCart();
@@ -207,7 +207,7 @@ export default function CartDrawer() {
       console.error("Error creating order:", error);
       const message = formatWhatsAppMessage();
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      window.open(whatsappUrl, "_blank");
+      window.location.href = whatsappUrl;
       toast.success("Redirecionando para WhatsApp...");
       clearCart();
       setIsOpen(false);
