@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { notifyOwner } from "./_core/notification";
@@ -258,7 +258,7 @@ export const appRouter = router({
         return { success: true, orderNumber };
       }),
 
-    list: adminProcedure.query(async () => {
+    list: protectedProcedure.query(async () => {
       return db.getAllOrders();
     }),
 
