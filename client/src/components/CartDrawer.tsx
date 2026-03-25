@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle, ChevronLeft, MapPin, Calendar, Truck, Store, Wallet, Check } from "lucide-react";
+import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle, ChevronLeft, MapPin, Calendar, Truck, Store, Wallet, Check, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { trpc } from "@/lib/trpc";
@@ -44,13 +44,46 @@ export default function CartDrawer() {
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
+  // Checkout UX State
+  const [customerName, setCustomerName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
   // Logistics State
   const [deliveryMethod, setDeliveryMethod] = useState<"retirada" | "entrega" | null>(null);
-  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [cep, setCep] = useState("");
+  const [street, setStreet] = useState("");
+  const [number, setNumber] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [complement, setComplement] = useState("");
   const [deliveryRegion, setDeliveryRegion] = useState<"torre" | "outra" | null>(null);
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<typeof PAYMENT_METHODS[0] | null>(null);
   const [observations, setObservations] = useState("");
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 8) value = value.slice(0, 8);
+    const formatted = value.replace(/^(\d{5})(\d)/, "$1-$2");
+    setCep(formatted);
+    
+    if (value.length === 8) {
+      // Auto fetch via CEP
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${value}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setStreet(data.logradouro || "");
+          setNeighborhood(data.bairro || "");
+          setErrors(prev => ({ ...prev, cep: false, street: false, neighborhood: false }));
+        } else {
+          setErrors(prev => ({ ...prev, cep: true }));
+        }
+      } catch (err) {
+        console.error("CEP error", err);
+      }
+    }
+  };
 
   const deliveryFee = deliveryMethod === "entrega" && deliveryRegion
     ? (DELIVERY_REGIONS.find(r => r.id === deliveryRegion)?.fee || 0)
@@ -127,13 +160,16 @@ export default function CartDrawer() {
     }
     message += `\n`;
 
-    // Logistics Info
+    if (customerName) {
+      message += `*Cliente:* ${customerName}\n\n`;
+    }
+
     message += `*Forma de Recebimento:* ${deliveryMethod === "retirada" ? "Retirar no Local" : "Entrega"}\n`;
     if (deliveryMethod === "retirada") {
       message += `*Data de Retirada:* ${deliveryDate ? format(deliveryDate, "dd/MM/yyyy") : 'Não informada'}\n\n`;
     } else {
       message += `*Data de Entrega:* ${deliveryDate ? format(deliveryDate, "dd/MM/yyyy") : 'Não informada'}\n`;
-      message += `*Endereço:* ${deliveryAddress}\n`;
+      message += `*Endereço:* ${street}, ${number}${complement ? ` - ${complement}` : ''} - ${neighborhood} (CEP: ${cep})\n`;
       message += `*Região:* ${DELIVERY_REGIONS.find(r => r.id === deliveryRegion)?.name}\n\n`;
     }
 
@@ -149,26 +185,35 @@ export default function CartDrawer() {
     return encodeURIComponent(message);
   };
 
-  const isValid = () => {
-    if (!deliveryMethod) return false;
-    if (!deliveryDate) return false;
-    if (deliveryMethod === "entrega") {
-      if (!deliveryAddress || deliveryAddress.length < 5) return false;
-      if (!deliveryRegion) return false;
-    }
-    if (!selectedPaymentMethod) return false;
-    return true;
-  };
-
   const handleCheckout = async () => {
-    if (!isValid()) {
-      // Focus error logic logic
-      if (!deliveryMethod) { toast.error("Selecione a forma de entrega"); return; }
-      if (deliveryMethod === 'entrega' && !deliveryAddress) { toast.error("Informe o endereço"); scrollToSection(addressRef); return; }
-      if (!deliveryDate) { toast.error("Informe a data"); scrollToSection(dateRef); return; }
-      if (!selectedPaymentMethod) { toast.error("Selecione o pagamento"); scrollToSection(paymentRef); return; }
+    // 1. Validation
+    const newErrors: Record<string, boolean> = {};
+    if (!customerName.trim()) newErrors.customerName = true;
+    if (!deliveryMethod) newErrors.deliveryMethod = true;
+    if (deliveryMethod === "entrega") {
+      if (!cep) newErrors.cep = true;
+      if (!street) newErrors.street = true;
+      if (!number) newErrors.number = true;
+      if (!neighborhood) newErrors.neighborhood = true;
+      if (!deliveryRegion) newErrors.deliveryRegion = true;
+    }
+    if (!deliveryDate) newErrors.deliveryDate = true;
+    if (!selectedPaymentMethod) newErrors.payment = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Preencha todos os campos destacados em vermelho");
+      
+      // Auto-scroll logic
+      if (newErrors.customerName || newErrors.deliveryMethod) scrollToSection(drawerContainerRef);
+      else if (newErrors.cep || newErrors.street || newErrors.deliveryRegion) scrollToSection(addressRef);
+      else if (newErrors.deliveryDate) scrollToSection(dateRef);
+      else scrollToSection(paymentRef);
+      
       return;
     }
+    setErrors({});
+    setIsSubmitting(true);
 
     trackEvent("purchase", {
       currency: "BRL",
@@ -183,6 +228,7 @@ export default function CartDrawer() {
 
     try {
       await createOrderMutation.mutateAsync({
+        customerName,
         items: items.map((item) => ({
           productId: item.productId,
           productName: item.productName,
@@ -201,6 +247,7 @@ export default function CartDrawer() {
 
       toast.success("Pedido enviado! Finalize pelo WhatsApp.");
       clearCart();
+      setIsSubmitting(false);
       setIsOpen(false);
       setCheckoutStep('review'); // Reset to start
     } catch (error) {
@@ -210,6 +257,7 @@ export default function CartDrawer() {
       window.location.href = whatsappUrl;
       toast.success("Redirecionando para WhatsApp...");
       clearCart();
+      setIsSubmitting(false);
       setIsOpen(false);
       setCheckoutStep('review');
     }
@@ -297,7 +345,7 @@ export default function CartDrawer() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground line-clamp-1 notranslate" translate="no">{item.productName}</h4>
+                            <h4 className="font-semibold text-foreground leading-tight notranslate" translate="no">{item.productName}</h4>
                             <p className="text-sm text-muted-foreground">
                               {item.weight}
                               {item.shell && <span className="notranslate" translate="no"> • Casca: {item.shell}</span>}
@@ -324,23 +372,40 @@ export default function CartDrawer() {
               {checkoutStep === 'hub' && (
                 <div className="space-y-8 pb-20">
 
+                  {/* Nome do Cliente */}
+                  <div className="space-y-3">
+                    <h3 className={`font-semibold flex items-center gap-2 ${errors.customerName ? "text-red-500" : ""}`}>
+                      <User className="w-4 h-4 text-primary" /> Seus Dados
+                    </h3>
+                    <input
+                      type="text"
+                      className={`w-full p-3 rounded-lg border bg-background ${errors.customerName ? "border-red-500 ring-1 ring-red-500" : "border-input"}`}
+                      placeholder="Nome e Sobrenome"
+                      value={customerName}
+                      onChange={(e) => {
+                         setCustomerName(e.target.value);
+                         if(e.target.value) setErrors(prev => ({...prev, customerName: false}));
+                      }}
+                    />
+                  </div>
+
                   {/* Entrega vs Retirada */}
                   <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2">
+                    <h3 className={`font-semibold flex items-center gap-2 ${errors.deliveryMethod ? "text-red-500" : ""}`}>
                       <Truck className="w-4 h-4 text-primary" /> Forma de Recebimento
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
-                        onClick={() => handleDeliveryMethodChange("retirada")}
-                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${deliveryMethod === "retirada" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                        onClick={() => { handleDeliveryMethodChange("retirada"); setErrors(prev => ({...prev, deliveryMethod: false})); }}
+                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${deliveryMethod === "retirada" ? "border-primary bg-primary/10" : errors.deliveryMethod ? "border-red-500" : "border-border hover:border-primary/50"
                           }`}
                       >
                         <Store className="w-6 h-6" />
                         <span className="font-semibold">Retirada</span>
                       </button>
                       <button
-                        onClick={() => handleDeliveryMethodChange("entrega")}
-                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${deliveryMethod === "entrega" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                        onClick={() => { handleDeliveryMethodChange("entrega"); setErrors(prev => ({...prev, deliveryMethod: false})); }}
+                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${deliveryMethod === "entrega" ? "border-primary bg-primary/10" : errors.deliveryMethod ? "border-red-500" : "border-border hover:border-primary/50"
                           }`}
                       >
                         <Truck className="w-6 h-6" />
@@ -359,25 +424,44 @@ export default function CartDrawer() {
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-4 overflow-hidden"
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <label className="text-sm font-medium">Endereço Completo</label>
-                          <textarea
-                            value={deliveryAddress}
-                            onChange={(e) => setDeliveryAddress(e.target.value)}
-                            placeholder="Rua, Número, Bairro e Complemento"
-                            className="w-full p-3 rounded-lg border border-input bg-background min-h-[80px]"
+                          <div className="grid grid-cols-3 gap-2">
+                             <input
+                               className={`col-span-1 p-3 rounded-lg border bg-background ${errors.cep ? "border-red-500 ring-1 ring-red-500" : "border-input"}`}
+                               placeholder="CEP" maxLength={9}
+                               value={cep} onChange={handleCepChange}
+                             />
+                             <input
+                               className={`col-span-2 p-3 rounded-lg border bg-background ${errors.street ? "border-red-500 ring-1 ring-red-500" : "border-input"}`}
+                               placeholder="Rua" value={street} onChange={(e) => { setStreet(e.target.value); setErrors(prev => ({...prev, street: false})); }}
+                             />
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                             <input
+                               className={`col-span-1 p-3 rounded-lg border bg-background ${errors.number ? "border-red-500 ring-1 ring-red-500" : "border-input"}`}
+                               placeholder="Número" value={number} onChange={(e) => { setNumber(e.target.value); setErrors(prev => ({...prev, number: false})); }}
+                             />
+                             <input
+                               className={`col-span-2 p-3 rounded-lg border bg-background ${errors.neighborhood ? "border-red-500 ring-1 ring-red-500" : "border-input"}`}
+                               placeholder="Bairro" value={neighborhood} onChange={(e) => { setNeighborhood(e.target.value); setErrors(prev => ({...prev, neighborhood: false})); }}
+                             />
+                          </div>
+                          <input
+                               className={`w-full p-3 rounded-lg border border-input bg-background`}
+                               placeholder="Complemento (Opcional)" value={complement} onChange={(e) => setComplement(e.target.value)}
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Região de Entrega</label>
+                          <label className={`text-sm font-medium ${errors.deliveryRegion ? "text-red-500" : ""}`}>Região de Entrega</label>
                           <p className="text-xs text-muted-foreground -mt-1">Necessário para calcular a taxa</p>
                           <div className="space-y-2">
                             {DELIVERY_REGIONS.map((region) => (
                               <button
                                 key={region.id}
-                                onClick={() => handleRegionChange(region.id as any)}
-                                className={`w-full p-3 rounded-lg border flex justify-between items-center transition-all ${deliveryRegion === region.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/30"
+                                onClick={() => { handleRegionChange(region.id as any); setErrors(prev => ({...prev, deliveryRegion: false})) }}
+                                className={`w-full p-3 rounded-lg border flex justify-between items-center transition-all ${deliveryRegion === region.id ? "border-primary bg-primary/5 ring-1 ring-primary" : errors.deliveryRegion ? "border-red-500 bg-red-500/5" : "border-border hover:border-primary/30"
                                   }`}
                               >
                                 <span>{region.name}</span>
@@ -401,17 +485,22 @@ export default function CartDrawer() {
                         animate={{ opacity: 1, height: "auto" }}
                         className="space-y-3 overflow-hidden"
                       >
-                        <h3 className="font-semibold flex items-center gap-2">
+                        <h3 className={`font-semibold flex items-center gap-2 ${errors.deliveryDate ? "text-red-500" : ""}`}>
                           <Calendar className="w-4 h-4 text-primary" />
                           Data de {deliveryMethod === 'retirada' ? 'Retirada' : 'Entrega'}
                         </h3>
-                        <DatePicker
-                          date={deliveryDate}
-                          setDate={(date) => {
-                            setDeliveryDate(date);
-                            if (date) scrollToSection(paymentRef);
-                          }}
-                        />
+                        <div className={errors.deliveryDate ? "ring-2 ring-red-500 rounded-lg inline-block" : ""}>
+                          <DatePicker
+                            date={deliveryDate}
+                            setDate={(date) => {
+                              setDeliveryDate(date);
+                              if (date) { 
+                                 scrollToSection(paymentRef);
+                                 setErrors(prev => ({...prev, deliveryDate: false}));
+                              }
+                            }}
+                          />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -425,17 +514,17 @@ export default function CartDrawer() {
                         animate={{ opacity: 1, height: "auto" }}
                         className="space-y-3 overflow-hidden"
                       >
-                        <h3 className="font-semibold flex items-center gap-2">
+                        <h3 className={`font-semibold flex items-center gap-2 ${errors.payment ? "text-red-500" : ""}`}>
                           <Wallet className="w-4 h-4 text-primary" /> Forma de Pagamento
                         </h3>
                         <div className="grid grid-cols-2 gap-2">
                           {PAYMENT_METHODS.map((method) => (
                             <button
                               key={method.id}
-                              onClick={() => setSelectedPaymentMethod(method)}
+                              onClick={() => { setSelectedPaymentMethod(method); setErrors(prev => ({...prev, payment: false})); }}
                               className={`p-3 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-2 ${selectedPaymentMethod?.id === method.id
                                 ? "border-primary bg-primary/10 text-primary"
-                                : "border-border hover:border-primary/30"
+                                : errors.payment ? "border-red-500" : "border-border hover:border-primary/30"
                                 }`}
                             >
                               {method.id === 'pix' ? (
@@ -520,13 +609,16 @@ export default function CartDrawer() {
               ) : (
                 <Button
                   size="lg"
-                  className={`w-full rounded-xl font-bold text-lg h-12 gap-2 transition-transform active:scale-[0.98] ${isValid() ? "bg-[#25D366] hover:bg-[#128C7E] text-white opacity-100 hover:opacity-100" : "bg-muted text-muted-foreground"
-                    }`}
+                  className={`w-full rounded-xl font-bold text-lg h-12 gap-2 transition-transform active:scale-[0.98] ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""} bg-[#25D366] hover:bg-[#128C7E] text-white`}
                   onClick={handleCheckout}
-                // disabled={!isValid()} // UX: Don't disable, let click trigger validation feedback
+                  disabled={isSubmitting}
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  Enviar Pedido via WhatsApp
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-5 h-5" />
+                  )}
+                  {isSubmitting ? "Processando..." : "Enviar Pedido via WhatsApp"}
                 </Button>
               )}
             </div>

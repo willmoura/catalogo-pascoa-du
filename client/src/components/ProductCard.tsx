@@ -50,11 +50,11 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -4 }}
-      className="group relative bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      className="group relative bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full flex flex-col"
       onClick={handleCardClick}
     >
       {/* Image Container */}
-      <div className="relative product-image overflow-hidden bg-secondary/30">
+      <div className="relative product-image overflow-hidden bg-secondary/30 shrink-0">
         {product.imageUrl ? (
           <ResponsiveImage
             imageId={product.imageUrl}
@@ -99,8 +99,8 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-foreground line-clamp-1 mb-1 notranslate" translate="no">
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-semibold text-foreground mb-1 leading-snug notranslate" translate="no">
           {product.name}
         </h3>
         {product.shortDescription && (
@@ -108,7 +108,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             {product.shortDescription}
           </p>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto pt-2">
           <div>
             <span className="text-xs text-muted-foreground">A partir de</span>
             <p className="text-lg font-bold text-primary">
