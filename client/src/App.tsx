@@ -13,8 +13,6 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
-import AdminOrders from "@/pages/admin/Orders";
-
 function Router() {
   const [location] = useLocation();
   const { trackEvent } = useAnalytics();
@@ -28,7 +26,6 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/admin/pedidos"} component={AdminOrders} />
       <Route path={"/admin/media"} component={MediaManager} />
       <Route path={"/admin/migration"} component={BulkImageMigration} />
       <Route path={"/404"} component={NotFound} />
