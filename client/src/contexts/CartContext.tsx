@@ -27,8 +27,8 @@ interface CartContextType {
   totalPrice: number;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  checkoutStep: "review" | "hub";
-  setCheckoutStep: (step: "review" | "hub") => void;
+  checkoutStep: "review" | "hub" | "success";
+  setCheckoutStep: (step: "review" | "hub" | "success") => void;
   openCartReview: () => void;
   openCheckoutHub: () => void;
 }
@@ -64,7 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return [];
   });
   const [isOpen, setIsOpen] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState<"review" | "hub">("review");
+  const [checkoutStep, setCheckoutStep] = useState<"review" | "hub" | "success">("review");
 
   // Persist cart to localStorage
   useEffect(() => {

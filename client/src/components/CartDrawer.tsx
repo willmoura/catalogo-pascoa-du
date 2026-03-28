@@ -51,6 +51,7 @@ export default function CartDrawer() {
 
   // Logistics State
   const [deliveryMethod, setDeliveryMethod] = useState<"retirada" | "entrega" | null>(null);
+  const [successWhatsappUrl, setSuccessWhatsappUrl] = useState("");
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
   const [number, setNumber] = useState("");
@@ -243,23 +244,20 @@ export default function CartDrawer() {
 
       const message = formatWhatsAppMessage();
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      window.location.href = whatsappUrl;
-
-      toast.success("Pedido enviado! Finalize pelo WhatsApp.");
+      setSuccessWhatsappUrl(whatsappUrl);
       clearCart();
       setIsSubmitting(false);
-      setIsOpen(false);
-      setCheckoutStep('review'); // Reset to start
+      toast.success("Pedido gerado! Confirme no WhatsApp.");
+      setCheckoutStep('success');
     } catch (error) {
       console.error("Error creating order:", error);
       const message = formatWhatsAppMessage();
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      window.location.href = whatsappUrl;
-      toast.success("Redirecionando para WhatsApp...");
+      setSuccessWhatsappUrl(whatsappUrl);
       clearCart();
       setIsSubmitting(false);
-      setIsOpen(false);
-      setCheckoutStep('review');
+      toast.error("Erro ao salvar, mas você ainda pode enviar pelo WhatsApp.");
+      setCheckoutStep('success');
     }
   };
 
@@ -285,16 +283,17 @@ export default function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-background z-10">
               <div className="flex items-center gap-2">
-                {checkoutStep === 'hub' ? (
+                {checkoutStep === 'hub' && (
                   <Button variant="ghost" size="icon" onClick={() => setCheckoutStep('review')}>
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
-                ) : (
+                )}
+                {checkoutStep === 'review' && (
                   <ShoppingBag className="w-5 h-5 text-primary" />
                 )}
                 <div>
                   <h2 className="text-lg font-semibold">
-                    {checkoutStep === 'hub' ? 'Finalizar Pedido' : `Carrinho (${totalItems})`}
+                    {checkoutStep === 'success' ? 'Pedido Registrado' : checkoutStep === 'hub' ? 'Finalizar Pedido' : `Carrinho (${totalItems})`}
                   </h2>
                   {checkoutStep === 'hub' && (
                     <p className="text-xs text-muted-foreground">Preencha os dados de entrega</p>
@@ -562,10 +561,35 @@ export default function CartDrawer() {
 
                 </div>
               )}
+
+              {/* STAGE 3: SUCCESS */}
+              {checkoutStep === 'success' && (
+                <div className="flex flex-col items-center justify-center p-6 space-y-6 pt-12 h-full">
+                  <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="w-12 h-12 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground">Pedido Gerado!</h3>
+                  <p className="text-muted-foreground text-center">
+                    Seu pedido foi registrado no sistema. Para finalizar, você <strong>precisa</strong> nos enviar os detalhes pelo WhatsApp clicando no botão abaixo.
+                  </p>
+                  
+                  <Button
+                    size="lg"
+                    className="w-full rounded-xl font-bold text-lg h-14 gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white mt-8"
+                    onClick={() => {
+                      window.open(successWhatsappUrl, '_blank');
+                    }}
+                  >
+                    <MessageCircle className="w-6 h-6" />
+                    Enviar para WhatsApp
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Footer Actions */}
-            <div className="p-4 border-t border-border bg-background safe-bottom space-y-3">
+            {checkoutStep !== 'success' && (
+              <div className="p-4 border-t border-border bg-background safe-bottom space-y-3">
               {/* Total Summary Row */}
               <div className="flex flex-col gap-1 pb-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
@@ -632,6 +656,7 @@ export default function CartDrawer() {
                 </Button>
               )}
             </div>
+            )}
           </motion.div>
         </>
       )}
