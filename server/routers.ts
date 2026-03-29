@@ -250,10 +250,14 @@ export const appRouter = router({
         const formattedItems = (await Promise.all(itemsList)).join('\n');
 
         // Notify owner about new order
-        await notifyOwner({
-          title: `🛒 Novo Pedido #${orderNumber}`,
-          content: `**Pedido iniciado via WhatsApp**\n\n${input.customerName ? `Cliente: ${input.customerName}\n` : ''}${input.customerPhone ? `Telefone: ${input.customerPhone}\n` : ''}\n**Itens:**\n${formattedItems}\n\n**Total: R$ ${input.totalAmount}**${input.notes ? `\n\nObservações: ${input.notes}` : ''}`,
-        });
+        try {
+          await notifyOwner({
+            title: `🛒 Novo Pedido #${orderNumber}`,
+            content: `**Pedido iniciado via WhatsApp**\n\n${input.customerName ? `Cliente: ${input.customerName}\n` : ''}${input.customerPhone ? `Telefone: ${input.customerPhone}\n` : ''}\n**Itens:**\n${formattedItems}\n\n**Total: R$ ${input.totalAmount}**${input.notes ? `\n\nObservações: ${input.notes}` : ''}`,
+          });
+        } catch (error) {
+          console.error("Failed to notify owner:", error);
+        }
 
         return { success: true, orderNumber };
       }),

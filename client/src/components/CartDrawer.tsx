@@ -138,6 +138,9 @@ export default function CartDrawer() {
     items.forEach((item, index) => {
       message += `${index + 1}. *${item.productName}*\n`;
       message += `   • Peso: ${item.weight}`;
+      if (item.shell) {
+        message += `\n   • Casca: ${item.shell}`;
+      }
       if (item.flavor) {
         message += `\n   • Sabor: ${item.flavor}`;
       }
@@ -256,7 +259,7 @@ export default function CartDrawer() {
       setSuccessWhatsappUrl(whatsappUrl);
       clearCart();
       setIsSubmitting(false);
-      toast.error("Erro ao salvar, mas você ainda pode enviar pelo WhatsApp.");
+      toast.success("Pedido gerado! Confirme no WhatsApp.");
       setCheckoutStep('success');
     }
   };
@@ -499,14 +502,15 @@ export default function CartDrawer() {
                               }
                             }}
                             disabled={(date) => {
-                              if (deliveryMethod === 'retirada') {
-                                const y = date.getFullYear();
-                                const m = date.getMonth();
-                                const d = date.getDate();
-                                return !(y === 2026 && m === 3 && (d === 2 || d === 3));
-                              }
-                              // For non-retirada, just disable past dates
-                              return date < new Date(new Date().setHours(0, 0, 0, 0));
+                              const baseDate = new Date(2026, 3, 3); // 3 de abril de 2026
+                              baseDate.setHours(0, 0, 0, 0);
+                              
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              
+                              const minDate = new Date(Math.max(baseDate.getTime(), today.getTime()));
+                              
+                              return date < minDate;
                             }}
                           />
                         </div>
