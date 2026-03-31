@@ -51,7 +51,6 @@ export default function CartDrawer() {
 
   // Logistics State
   const [deliveryMethod, setDeliveryMethod] = useState<"retirada" | "entrega" | null>(null);
-  const [successWhatsappUrl, setSuccessWhatsappUrl] = useState("");
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
   const [number, setNumber] = useState("");
@@ -189,7 +188,7 @@ export default function CartDrawer() {
     return encodeURIComponent(message);
   };
 
-  const handleCheckout = async () => {
+  const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     // 1. Validation
     const newErrors: Record<string, boolean> = {};
     if (!customerName.trim()) newErrors.customerName = true;
@@ -205,6 +204,7 @@ export default function CartDrawer() {
     if (!selectedPaymentMethod) newErrors.payment = true;
 
     if (Object.keys(newErrors).length > 0) {
+      e.preventDefault(); // PREVENTS NATIVE LINK NAVIGATION
       setErrors(newErrors);
       toast.error("Preencha todos os campos destacados em vermelho");
       
@@ -216,6 +216,8 @@ export default function CartDrawer() {
       
       return;
     }
+    
+    // 2. Clear errors and proceed (the link opens naturally in the background due to href and target=_blank)
     setErrors({});
     setIsSubmitting(true);
 
@@ -230,39 +232,30 @@ export default function CartDrawer() {
       }))
     });
 
-    try {
-      await createOrderMutation.mutateAsync({
-        customerName,
-        items: items.map((item) => ({
-          productId: item.productId,
-          productName: item.productName,
-          weight: item.weight,
-          price: item.price,
-          quantity: item.quantity,
-          flavor: item.flavor,
-          shell: item.shell,
-        })),
-        totalAmount: finalTotal.toFixed(2),
-      });
+    // 3. Fire and forget DB save (no await!)
+    createOrderMutation.mutate({
+      customerName,
+      items: items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        weight: item.weight,
+        price: item.price,
+        quantity: item.quantity,
+        flavor: item.flavor,
+        shell: item.shell,
+      })),
+      totalAmount: finalTotal.toFixed(2),
+    });
 
-      const message = formatWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      setSuccessWhatsappUrl(whatsappUrl);
-      clearCart();
-      setIsSubmitting(false);
-      toast.success("Pedido gerado! Confirme no WhatsApp.");
-      setCheckoutStep('success');
-    } catch (error) {
-      console.error("Error creating order:", error);
-      const message = formatWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-      setSuccessWhatsappUrl(whatsappUrl);
-      clearCart();
-      setIsSubmitting(false);
-      toast.success("Pedido gerado! Confirme no WhatsApp.");
-      setCheckoutStep('success');
-    }
+    // 4. Cleanup UI 
+    toast.success("Pedido gerado! O WhatsApp foi aberto.");
+    clearCart();
+    setIsSubmitting(false);
+    setIsOpen(false);
+    setCheckoutStep('review');
   };
+
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${formatWhatsAppMessage()}`;
 
   return (
     <AnimatePresence>
@@ -296,7 +289,7 @@ export default function CartDrawer() {
                 )}
                 <div>
                   <h2 className="text-lg font-semibold">
-                    {checkoutStep === 'success' ? 'Pedido Registrado' : checkoutStep === 'hub' ? 'Finalizar Pedido' : `Carrinho (${totalItems})`}
+                    {checkoutStep === 'hub' ? 'Finalizar Pedido' : `Carrinho (${totalItems})`}
                   </h2>
                   {checkoutStep === 'hub' && (
                     <p className="text-xs text-muted-foreground">Preencha os dados de entrega</p>
@@ -565,35 +558,10 @@ export default function CartDrawer() {
 
                 </div>
               )}
-
-              {/* STAGE 3: SUCCESS */}
-              {checkoutStep === 'success' && (
-                <div className="flex flex-col items-center justify-center p-6 space-y-6 pt-12 h-full">
-                  <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
-                    <Check className="w-12 h-12 text-green-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground">Pedido Gerado!</h3>
-                  <p className="text-muted-foreground text-center">
-                    Seu pedido foi registrado no sistema. Para finalizar, você <strong>precisa</strong> nos enviar os detalhes pelo WhatsApp clicando no botão abaixo.
-                  </p>
-                  
-                  <Button
-                    size="lg"
-                    className="w-full rounded-xl font-bold text-lg h-14 gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white mt-8"
-                    onClick={() => {
-                      window.open(successWhatsappUrl, '_blank');
-                    }}
-                  >
-                    <MessageCircle className="w-6 h-6" />
-                    Enviar para WhatsApp
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Footer Actions */}
-            {checkoutStep !== 'success' && (
-              <div className="p-4 border-t border-border bg-background safe-bottom space-y-3">
+            <div className="p-4 border-t border-border bg-background safe-bottom space-y-3">
               {/* Total Summary Row */}
               <div className="flex flex-col gap-1 pb-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
@@ -645,11 +613,12 @@ export default function CartDrawer() {
                   </Button>
                 )
               ) : (
-                <Button
-                  size="lg"
-                  className={`w-full rounded-xl font-bold text-lg h-12 gap-2 transition-transform active:scale-[0.98] ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""} bg-[#25D366] hover:bg-[#128C7E] text-white`}
-                  onClick={handleCheckout}
-                  disabled={isSubmitting}
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleWhatsAppClick}
+                  className={`w-full flex items-center justify-center rounded-xl font-bold text-lg h-12 gap-2 transition-transform active:scale-[0.98] ${isSubmitting ? "opacity-70 cursor-not-allowed pointer-events-none" : ""} bg-[#25D366] hover:bg-[#128C7E] text-white`}
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -657,10 +626,9 @@ export default function CartDrawer() {
                     <MessageCircle className="w-5 h-5" />
                   )}
                   {isSubmitting ? "Processando..." : "Enviar Pedido via WhatsApp"}
-                </Button>
+                </a>
               )}
             </div>
-            )}
           </motion.div>
         </>
       )}
